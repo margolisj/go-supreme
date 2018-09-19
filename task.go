@@ -34,12 +34,7 @@ type taskItem struct {
 	keywords []string
 	category string
 	size     string
-}
-
-type supremeItem struct {
-	name  string
-	color string
-	url   string
+	color    string
 }
 
 // type proxy struct {
@@ -55,4 +50,9 @@ type task struct {
 	items   []taskItem
 	success bool
 	status  string
+}
+
+// ImportTasksFromJSON imports a list of tasks from a json file
+func ImportTasksFromJSON(filename string) {
+
 }

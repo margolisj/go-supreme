@@ -1,1 +1,6 @@
+# Project specific
 supreme
+test_data.go
+
+# VScode
+/.vscode
