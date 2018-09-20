@@ -52,5 +52,3 @@ func supremeCheckout(task task) (bool, error) {
 
 	return true, nil
 }
-
-// {"status":"queued","slug":"q7j84cuad93wnyrg0"}
