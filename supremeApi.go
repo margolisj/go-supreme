@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/levigross/grequests"
@@ -26,13 +28,19 @@ type SupremeItem struct {
 	url   string
 }
 
+type checkoutJSON struct {
+	Status string `json:"status"`
+	Slug   string `json:"slug"`
+	Errors string `json:"errors"`
+}
+
 // SupremeItems a slice of supreme items
 type SupremeItems []SupremeItem
 
 //GetCollectionItems Gets the collection items
 //TODO: make this match?
 func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
-	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.category
+	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.Category
 
 	resp, err := grequests.Get(collectionURL, defaultRo)
 
@@ -64,7 +72,7 @@ func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
 		items = append(items, SupremeItem{name, color, url})
 	})
 
-	log.Println("Found items in collection")
+	fmt.Printf("Found %d items in collection\n", len(items))
 	return &items
 }
 
@@ -150,47 +158,47 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 	return true
 }
 
-func fakeFirstCheckout(session *grequests.Session, xcsrf string, account *account) {
-	queryData := map[string]string{
-		"utf8":                     "✓",
-		"authenticity_token":       xcsrf,
-		"order[billing_name]":      account.person.firstname + " " + account.person.lastname,
-		"order[email]":             account.person.email,
-		"order[tel]":               account.person.phoneNumber,
-		"order[billing_address]":   account.address.address1,
-		"order[billing_address_2]": account.address.address2,
-		"order[billing_zip]":       account.address.zipcode,
-		"order[billing_city]":      account.address.city,
-		"order[billing_state]":     account.address.state,
-		"order[billing_country]":   account.address.country,
-		"asec":                     "Rmasn",
-		"same_as_billing_address":  "1",
-		"store_credit_id":          "",
-		"credit_card[nlb]":         "",
-		"credit_card[month]":       account.card.month,
-		"credit_card[year]":        account.card.year,
-		"credit_card[rvv]":         "",
-		"order[terms]":             "0",
-		"g-recaptcha-response":     "",
-		"credit_card[vval]":        "",
-		"cnt":                      "1",
-	}
-	ro := &grequests.RequestOptions{
-		Params: queryData,
-	}
+// func fakeFirstCheckout(session *grequests.Session, xcsrf string, account *account) {
+// 	queryData := map[string]string{
+// 		"utf8":                     "✓",
+// 		"authenticity_token":       xcsrf,
+// 		"order[billing_name]":      account.person.Firstname + " " + account.person.Lastname,
+// 		"order[email]":             account.person.Email,
+// 		"order[tel]":               account.person.PhoneNumber,
+// 		"order[billing_address]":   account.address.address1,
+// 		"order[billing_address_2]": account.address.address2,
+// 		"order[billing_zip]":       account.address.zipcode,
+// 		"order[billing_city]":      account.address.city,
+// 		"order[billing_state]":     account.address.state,
+// 		"order[billing_country]":   account.address.country,
+// 		"asec":                     "Rmasn",
+// 		"same_as_billing_address":  "1",
+// 		"store_credit_id":          "",
+// 		"credit_card[nlb]":         "",
+// 		"credit_card[month]":       account.card.month,
+// 		"credit_card[year]":        account.card.year,
+// 		"credit_card[rvv]":         "",
+// 		"order[terms]":             "0",
+// 		"g-recaptcha-response":     "",
+// 		"credit_card[vval]":        "",
+// 		"cnt":                      "1",
+// 	}
+// 	ro := &grequests.RequestOptions{
+// 		Params: queryData,
+// 	}
 
-	resp, err := grequests.Get("https://www.supremenewyork.com/checkout.js", ro)
+// 	resp, err := grequests.Get("https://www.supremenewyork.com/checkout.js", ro)
 
-	if err != nil {
-		log.Fatal("Js Checkout Error: ", err)
-	}
+// 	if err != nil {
+// 		log.Fatal("Js Checkout Error: ", err)
+// 	}
 
-	if resp.Ok != true {
-		log.Println("Js Checkout request did not return OK")
-		log.Println(resp.RawResponse.Request)
-	}
+// 	if resp.Ok != true {
+// 		log.Println("Js Checkout request did not return OK")
+// 		log.Println(resp.RawResponse.Request)
+// 	}
 
-}
+// }
 
 // Checkout Checks out a task
 func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
@@ -199,23 +207,23 @@ func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
 	postData := map[string]string{
 		"utf8":                     "✓",
 		"authenticity_token":       xcsrf,
-		"order[billing_name]":      account.person.firstname + " " + account.person.lastname,
-		"order[email]":             account.person.email,
-		"order[tel]":               account.person.phoneNumber,
-		"order[billing_address]":   account.address.address1,
-		"order[billing_address_2]": account.address.address2,
-		"order[billing_zip]":       account.address.zipcode,
-		"order[billing_city]":      account.address.city,
-		"order[billing_state]":     account.address.state,
-		"order[billing_country]":   account.address.country,
+		"order[billing_name]":      account.Person.Firstname + " " + account.Person.Lastname,
+		"order[email]":             account.Person.Email,
+		"order[tel]":               account.Person.PhoneNumber,
+		"order[billing_address]":   account.Address.Address1,
+		"order[billing_address_2]": account.Address.Address2,
+		"order[billing_zip]":       account.Address.Zipcode,
+		"order[billing_city]":      account.Address.City,
+		"order[billing_state]":     account.Address.State,
+		"order[billing_country]":   account.Address.Country,
 		"asec":                     "Rmasn",
 		"same_as_billing_address":  "1",
 		"store_credit_id":          "",
 		"store_address":            "1",
-		"credit_card[nlb]":         account.card.number,
-		"credit_card[month]":       account.card.month,
-		"credit_card[year]":        account.card.year,
-		"credit_card[rvv]":         account.card.cvv,
+		"credit_card[nlb]":         account.Card.Number,
+		"credit_card[month]":       account.Card.Month,
+		"credit_card[year]":        account.Card.Year,
+		"credit_card[rvv]":         account.Card.Cvv,
 		// "order[terms]":" 0", // Don't think we actually need this other one
 		"order[terms]": "1",
 		// "credit_card[vval]": "", // No idea what this is still doing here
@@ -258,24 +266,66 @@ func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
 	// 	log.Println(inter)
 	// }
 	log.Println("----------------RESPONSE----------------")
-	log.Println(resp.String())
+	respString := resp.String()
+	log.Println(respString)
 	log.Println(resp.RawResponse)
 
 	log.Println("----------------REQUEST----------------")
 	log.Println(resp.RawResponse.Request)
-	log.Println(resp.RawResponse.Request.PostForm)
+
+	if strings.Contains(respString, "queued") {
+		return queue(session, respString)
+	} else if strings.Contains(respString, "failed") || strings.Contains(respString, "outOfStock") {
+		return false
+	}
 
 	return true
 }
 
-// func queue(session *grequests.Session, json interface) (bool, error) {
+func queue(session *grequests.Session, respString string) bool {
+	var queueJSON checkoutJSON
+	if err := json.Unmarshal([]byte(respString), &queueJSON); err != nil {
+		panic(err)
+	}
+	time.Sleep(10000)
 
-// 	if val, ok := json["status"]; ok {
-// 		//do something here
-// 	}
+	localRo := &grequests.RequestOptions{
+		UserAgent: sharedUserAgent,
+		Headers: map[string]string{
+			"accept":           "application/json",
+			"accept-encoding":  "gzip, deflate, br",
+			"accept-language":  "en-US,en;q=0.9",
+			"origin":           "https://www.supremenewyork.com",
+			"referer":          "https://www.supremenewyork.com/checkout",
+			"x-requested-with": "XMLHttpRequest",
+		},
+	}
 
-// 	return false, error
-// }
+	resp, err := session.Get(fmt.Sprintf("https://www.supremenewyork.com/checkout/%s/status.json", queueJSON.Slug), localRo)
+	if err != nil {
+		log.Fatal("Queue Error: ", err)
+		return false
+	}
+
+	if resp.Ok != true {
+		log.Println("Queue did not return OK")
+		log.Println(resp.RawResponse.Request)
+		log.Println(resp.RawResponse)
+	}
+
+	if strings.Contains(respString, "queued") {
+		return queue(session, resp.String())
+	} else if strings.Contains(respString, "failed") {
+		fmt.Printf("Failed: %s\n", respString)
+		return false
+	} else if strings.Contains(respString, "outOfStock") {
+		fmt.Printf("Out Of Stock: %s\n", respString)
+		return false
+	}
+
+	fmt.Printf("Success!: %s\n", respString)
+	return true
+}
 
 func checkKeywords(keywords []string, supremeItemName string) bool {
 	for _, keyword := range keywords {
@@ -297,7 +347,7 @@ func checkColor(taskItemColor string, supremeItemColor string) bool {
 func FindItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error) {
 
 	for _, supItem := range supremeItems {
-		if checkKeywords(taskItem.keywords, supItem.name) && checkColor(taskItem.color, supItem.color) {
+		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
 			return supItem, nil
 		}
 	}

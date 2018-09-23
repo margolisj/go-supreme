@@ -1,6 +1,7 @@
 # Project specific
 supreme
-test_data.go
+testData.go
+/taskFiles
 
 # VScode
 /.vscode
