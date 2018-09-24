@@ -56,7 +56,7 @@ func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
 	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.Category
 	resp, err := grequests.Get(collectionURL, defaultRo)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	if resp.Ok != true {
 		log.Warn("GetCollectionItems request did not return OK")
@@ -65,14 +65,13 @@ func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
 	// Build goquery doc and find each article
 	doc, err := goquery.NewDocumentFromReader(resp.RawResponse.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	var items SupremeItems
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
 		// First check sold out status
-		// TODO: Rename this variable / get logic clear
-		soldOut := s.Find("a .sold_out_tag").Size() == 0
-		if inStockOnly && !soldOut {
+		soldOut := s.Find("a .sold_out_tag").Size() != 0
+		if inStockOnly && soldOut {
 			return
 		}
 		nameSelector := s.Find("h1 .name-link")
@@ -90,7 +89,7 @@ func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map
 	itemURL := "https://www.supremenewyork.com" + itemURLSuffix
 	resp, err := grequests.Get(itemURL, defaultRo)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	if resp.Ok != true {
 		log.Warn("GetSizeInfo request did not return OK")
@@ -99,7 +98,7 @@ func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map
 	// Build goquery doc and find each size and style codes
 	doc, err := goquery.NewDocumentFromReader(resp.RawResponse.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 
 	st, _ := doc.Find("#st").Last().Attr("value")
@@ -114,7 +113,6 @@ func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map
 	addURL, _ := doc.Find("#cart-addf").Attr("action")
 
 	// Get xcsrf code
-	// TODO: Figure out if I shoudl move this somewhere else
 	var xcsrf string
 	doc.Find("[name=\"csrf-token\"]").Each(func(i int, s *goquery.Selection) {
 		xcsrf, _ = s.Attr("content")
@@ -151,7 +149,7 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 	)
 
 	if err != nil {
-		log.Fatal("Error addding to cart", err)
+		log.Error("Error addding to cart", err)
 		return false
 	}
 
@@ -212,7 +210,7 @@ func Checkout(session *grequests.Session, xcsrf string, account *Account) bool {
 	resp, err := session.Post("https://www.supremenewyork.com/checkout.json", localRo)
 
 	if err != nil {
-		log.Fatal("Checkout Error: ", err)
+		log.Error("Checkout Error: ", err)
 		return false
 	}
 
@@ -237,13 +235,13 @@ func Checkout(session *grequests.Session, xcsrf string, account *Account) bool {
 		log.WithFields(log.Fields{
 			"reason":   "failed",
 			"response": respString,
-		}).Fatal("Checkout failed")
+		}).Error("Checkout failed")
 		return false
 	} else if strings.Contains(respString, "outOfStock") {
 		log.WithFields(log.Fields{
 			"reason":   "outOfStock",
 			"response": respString,
-		}).Fatal("Checkout failed")
+		}).Error("Checkout failed")
 		return false
 	}
 
@@ -255,7 +253,7 @@ func queue(session *grequests.Session, respString string) bool {
 	if err := json.Unmarshal([]byte(respString), &queueJSON); err != nil {
 		log.WithFields(log.Fields{
 			"response": respString,
-		}).Fatal("Unable to marshall json")
+		}).Error("Unable to marshall json")
 		return false
 	}
 
@@ -275,7 +273,7 @@ func queue(session *grequests.Session, respString string) bool {
 
 	resp, err := session.Get(fmt.Sprintf("https://www.supremenewyork.com/checkout/%s/status.json", queueJSON.Slug), localRo)
 	if err != nil {
-		log.Fatal("Queue Error: ", err)
+		log.Error("Queue Error: ", err)
 		return false
 	}
 
@@ -292,13 +290,13 @@ func queue(session *grequests.Session, respString string) bool {
 		log.WithFields(log.Fields{
 			"reason":   "failed",
 			"response": respString,
-		}).Fatal("Queue failed")
+		}).Error("Queue failed")
 		return false
 	} else if strings.Contains(respString, "outOfStock") {
 		log.WithFields(log.Fields{
 			"reason":   "outOfStock",
 			"response": respString,
-		}).Fatal("Queue failed")
+		}).Error("Queue failed")
 		return false
 	}
 
@@ -318,11 +316,12 @@ func checkKeywords(keywords []string, supremeItemName string) bool {
 	return true
 }
 
+// checkColor checks the supreme item color to see if it contains the task color
 func checkColor(taskItemColor string, supremeItemColor string) bool {
 	if taskItemColor == "" {
 		return true
 	}
-	return strings.ToLower(taskItemColor) == strings.ToLower(supremeItemColor)
+	return strings.Contains(strings.ToLower(strings.TrimSpace(supremeItemColor)), strings.ToLower(taskItemColor))
 }
 
 // FindItem finds a task itime in the slice of supreme items

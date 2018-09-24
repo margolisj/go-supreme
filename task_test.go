@@ -12,7 +12,7 @@ func testAccount() Account {
 		"Jax",
 		"Blax",
 		"none@none.com",
-		"215-834-1857", // Phone numbers have dashes
+		"215-834-1857",
 	}
 
 	a := Address{
@@ -25,11 +25,11 @@ func testAccount() Account {
 	}
 
 	c := Card{
-		"visa",                // Don't think this matters for desktop
-		"1285 4827 5948 2017", //TODO: These cards must have spaces
+		"visa",
+		"1285 4827 5948 2017",
 		"02",
-		"2019", // 4 digit dates
-		"847",  //
+		"2019",
+		"847",
 	}
 
 	return Account{p, a, c}
@@ -44,9 +44,9 @@ func testTask() Task {
 	}
 
 	return Task{
-		"Task1",
-		item,
-		testAccount(),
+		TaskName: "Task1",
+		Item:     item,
+		Account:  testAccount(),
 	}
 }
 

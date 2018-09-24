@@ -15,11 +15,11 @@ type Person struct {
 
 // Card is a struct moding a credit card
 type Card struct {
-	Cardtype string `json:"cardtype"`
-	Number   string `json:"number"` // Card numbers must have spaces "XXXX XXXX XXXX XXXX"
-	Month    string `json:"month"`  // Two digit month, ex. 03
-	Year     string `json:"year"`   // 4 digit year, ex. 2019
-	Cvv      string `json:"cvv"`
+	Cardtype string `json:"cardtype"` // Don't think this matters for desktop, also should be able to figure this out without user entry
+	Number   string `json:"number"`   // Card numbers must have spaces "XXXX XXXX XXXX XXXX"
+	Month    string `json:"month"`    // Two digit month, ex. 03
+	Year     string `json:"year"`     // 4 digit year, ex. 2019
+	Cvv      string `json:"cvv"`      // 3 digit or 4 digit
 }
 
 // Address is a struct modeling an address
@@ -46,12 +46,12 @@ type taskItem struct {
 	Color    string   `json:"color"`
 }
 
-// type proxy struct {
-// 	ip       string
-// 	port     string
-// 	username string
-// 	password string
-// }
+type proxy struct {
+	ip       string
+	port     string
+	username string
+	password string
+}
 
 // Task is a checkout acount and an item(s) to checkout
 type Task struct {

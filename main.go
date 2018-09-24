@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 	"time"
@@ -11,12 +12,29 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func setupLogging() {
+	log.SetLevel(log.DebugLevel)
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// Create file and set output to both if possible
+	filename := fmt.Sprintf("logs/logfile-%d.log", time.Now().Unix())
+	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		mw := io.MultiWriter(os.Stdout, f)
+		log.SetOutput(mw)
+	}
+
+}
+
 func main() {
-	tasks, err := ImportTasksFromJSON("testFile.txt")
+	setupLogging()
+
+	tasks, err := ImportTasksFromJSON("taskFiles/testFile.json")
 
 	if err != nil {
-		log.Fatal("Unable to correctly parse tasks.")
-		panic(err)
+		log.Panic("Unable to correctly parse tasks.") // Will call panic
 	}
 
 	log.Infof("Loaded %d tasks. Waiting to run.", len(tasks))
@@ -36,7 +54,7 @@ func main() {
 
 			success, err := supremeCheckout(i, innerTask)
 			if err != nil {
-				log.Fatal("Error after checkout", err)
+				log.Error("Error after checkout", err)
 			}
 
 			log.WithFields(log.Fields{

@@ -29,8 +29,6 @@ func TestFindItem(t *testing.T) {
 	}
 }
 
-//TODO: HTML source
-
 // TestDesktopCheckoutResponsesUnmarshall tests the json unmarshalling of the standard checkout responses from desktop
 func TestDesktopCheckoutResponsesUnmarshall(t *testing.T) {
 	queuedStatus := []byte(`{"status":"queued","slug":"q7j84cuad93wnyrg0"}`)

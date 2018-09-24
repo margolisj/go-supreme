@@ -12,19 +12,31 @@ go build
 
 ## TODO:
 ### Current
+* Add a verify task function which makes sure -'s are in phone number and credit cards are spaced correctly
 * Add better retrying
+* Add task status again and make GUI to keep track of status
+  * https://github.com/gizak/termui
+  * https://github.com/jroimartin/gocui
+  * https://github.com/gdamore/tcell
+* Supreme API HTML source Tests
+  * Look for articles on page
+  * Look for st and s on product page
 * Move checkout into Tasks and make it a class function
-* Add proxy support
-  * Figure out best practice for maybe options
-* Utilize default ro in api better
-* Unify / pool inital item search
+* Restock monitor
+  * Commandline to run both
+    * https://github.com/spf13/cobra
+  * Add proxy support
+    * Figure out best practice for maybe options
 
 ### Pipeline
-* Restock monitor
+* Replace logging with - https://github.com/rs/zerolog
+* Utilize default ro in api better
+* Unify / pool inital item search
 * Add mobile API
   * Figure out if mobile can also skip captcha
   * Model an interface for current and former system
 * Add gcapture code in case they revert
+* UI
 
 ### Completed
 * Finish API - 9/19
@@ -37,7 +49,7 @@ go build
 * Clean up testing - 9/23
 * Add go module system - 9/23
 * Add better logging - 9/23
-* Fix weird task struct formatting
+* Fix weird task struct formatting - 9/24
   * Update go code - 9/24
   * Update python code - 9/24
 
