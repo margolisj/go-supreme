@@ -166,7 +166,7 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 }
 
 // Checkout Checks out a task. If there is an issue with
-func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
+func Checkout(session *grequests.Session, xcsrf string, account *Account) bool {
 
 	postData := map[string]string{
 		"utf8":                     "✓",

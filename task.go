@@ -5,14 +5,16 @@ import (
 	"io/ioutil"
 )
 
-type person struct {
+// Person is a struct modeling personal information
+type Person struct {
 	Firstname   string `json:"firstname"`
 	Lastname    string `json:"lastname"`
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phoneNumber"` // Phone numbers must have dashes
 }
 
-type card struct {
+// Card is a struct moding a credit card
+type Card struct {
 	Cardtype string `json:"cardtype"`
 	Number   string `json:"number"` // Card numbers must have spaces "XXXX XXXX XXXX XXXX"
 	Month    string `json:"month"`  // Two digit month, ex. 03
@@ -20,7 +22,8 @@ type card struct {
 	Cvv      string `json:"cvv"`
 }
 
-type address struct {
+// Address is a struct modeling an address
+type Address struct {
 	Address1 string `json:"address1"`
 	Address2 string `json:"address2"`
 	Zipcode  string `json:"zipcode"`
@@ -29,10 +32,11 @@ type address struct {
 	Country  string `json:"country"`
 }
 
-type account struct {
-	Person  person  `json:"person"`
-	Address address `json:"address"`
-	Card    card    `json:"card"`
+// Account is a checkout account, a person, address and card
+type Account struct {
+	Person  Person  `json:"person"`
+	Address Address `json:"address"`
+	Card    Card    `json:"card"`
 }
 
 type taskItem struct {
@@ -49,29 +53,24 @@ type taskItem struct {
 // 	password string
 // }
 
-// Task is a combination of items, status
+// Task is a checkout acount and an item(s) to checkout
 type Task struct {
 	TaskName string `json:"taskName"`
 	// proxy    proxy
 	Item taskItem `json:"item"`
 	// Success bool
 	// status  string
-}
-
-// FullTask is an account and task item
-type FullTask struct {
-	Task    Task    `json:"task"`
-	Account account `json:"account"`
+	Account Account `json:"account"`
 }
 
 // ImportTasksFromJSON imports a list of tasks from a json file
-func ImportTasksFromJSON(filename string) ([]FullTask, error) {
+func ImportTasksFromJSON(filename string) ([]Task, error) {
 	fileBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	var tasks []FullTask
+	var tasks []Task
 	if err := json.Unmarshal(fileBytes, &tasks); err != nil {
 		return nil, err
 	}

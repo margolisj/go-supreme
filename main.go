@@ -28,14 +28,15 @@ func main() {
 	// Create wait group and run
 	var wg sync.WaitGroup
 	wg.Add(len(tasks))
-	for i, fullTask := range tasks {
-
-		go func(i int, t FullTask) {
+	for i, task := range tasks {
+		go func(i int, innerTask Task) {
+			// Use wait group to hold application open
 			defer wg.Done()
 			log.Infof("%d Running task.", &i)
-			success, err := supremeCheckout(i, t.Task, t.Account)
+
+			success, err := supremeCheckout(i, innerTask)
 			if err != nil {
-				log.Println(err)
+				log.Fatal("Error after checkout", err)
 			}
 
 			log.WithFields(log.Fields{
@@ -43,7 +44,7 @@ func main() {
 				"success": success,
 			}).Info("Checkout has compelted")
 
-		}(i, fullTask)
+		}(i, task)
 
 	}
 
@@ -51,7 +52,7 @@ func main() {
 
 }
 
-func supremeCheckout(i int, task Task, acc account) (bool, error) {
+func supremeCheckout(i int, task Task) (bool, error) {
 	taskItem := task.Item
 
 	var matchedItem SupremeItem
@@ -80,8 +81,8 @@ func supremeCheckout(i int, task Task, acc account) (bool, error) {
 
 	time.Sleep(1300 * time.Millisecond)
 
-	log.Debugf("%d Using data %s", i, acc)
-	checkoutSuccess := Checkout(session, xcsrf, &acc)
+	log.Debugf("%d Using data %s", i, task.Account)
+	checkoutSuccess := Checkout(session, xcsrf, &task.Account)
 	log.Debugf("%d Checkout: %t", i, checkoutSuccess)
 
 	return true, nil

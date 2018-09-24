@@ -14,14 +14,9 @@ go build
 ### Current
 * Add better retrying
 * Move checkout into Tasks and make it a class function
-* Add better waiting functionality
-  * https://nathanleclaire.com/blog/2014/02/15/how-to-wait-for-all-goroutines-to-finish-executing-before-continuing/
-* Fix weird task idea
-  * Update go code
-  * Update python code
 * Add proxy support
   * Figure out best practice for maybe options
-* Utilize default ro in api
+* Utilize default ro in api better
 * Unify / pool inital item search
 
 ### Pipeline
@@ -37,10 +32,14 @@ go build
 * Add worker pool - 9/20
 * Add task importing - 9/20
 * Create task generator in json - 9/20 (in python)
+* Add better waiting functionality - 9/20
 * Attempt to purge credentials from old commits - 9/23
 * Clean up testing - 9/23
 * Add go module system - 9/23
 * Add better logging - 9/23
+* Fix weird task struct formatting
+  * Update go code - 9/24
+  * Update python code - 9/24
 
 ## Objectives
 
@@ -48,9 +47,11 @@ go build
 * Test - SUCESSFUL, 3 Liquid Tees but ended in crash
 
 ### 9/20/18
-* Test queuing properly
-* Run at parents and locally
-* Test on google cloud
+* Test queueing properly
+* Run more versions:
+  * Find beta testers
+  * Run at parents and locally
+  * Test on google cloud
 
 ## Libraries and Code Examples
 
@@ -62,3 +63,6 @@ go build
 * http://polyglot.ninja/golang-making-http-requests/
 * https://blog.alexellis.io/golang-writing-unit-tests/
 * https://help.github.com/articles/removing-sensitive-data-from-a-repository/
+* https://gist.github.com/life1347/69b9f60410070b2609ad2d0779d30cbf
+* https://gitlab.com/brandonryan/example/blob/master/logrus/async_test.go
+* https://stackoverflow.com/questions/48305425/json-key-can-either-be-a-string-or-an-object
