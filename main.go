@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -30,9 +31,9 @@ func setupLogging() {
 
 func main() {
 	setupLogging()
+	rand.Seed(time.Now().UnixNano())
 
 	tasks, err := ImportTasksFromJSON("taskFiles/testFile.json")
-
 	if err != nil {
 		log.Panic("Unable to correctly parse tasks.") // Will call panic
 	}
@@ -76,37 +77,99 @@ func main() {
 }
 
 func supremeCheckout(i int, task Task) (bool, error) {
-	taskItem := task.Item
-
 	var matchedItem SupremeItem
 	var err error
-	for {
-		supremeItems := GetCollectionItems(taskItem, true)
-		matchedItem, err = FindItem(taskItem, *supremeItems)
-		if err != nil {
-			log.Warnf("%d Error matching item, sleeping: %s", i, err.Error())
-			time.Sleep(500 * time.Millisecond)
-		} else {
-			break
-		}
-	}
+	session := grequests.NewSession(nil)
 
+	// Try to find the item
+	for {
+		supremeItems, err := GetCollectionItems(task.Item, true)
+		if err != nil {
+			log.Errorf("%d Error getting collection", 1)
+		} else {
+			if len(*supremeItems) > 0 {
+				matchedItem, err = FindItem(task.Item, *supremeItems)
+			}
+			if err != nil {
+				log.Warnf("%d Error matching item, sleeping: %s", i, err.Error())
+			} else {
+				break
+			}
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
 	log.Debugf("%d Found item %s", i, matchedItem)
 
-	session := grequests.NewSession(nil)
-	st, sizes, addURL, xcsrf := GetSizeInfo(session, matchedItem.url)
-	log.Debugf("%d %s %s %s", i, st, addURL, xcsrf)
+	// Get the ATC info from the item page
+	var st string
+	var sizeResponse SizeResponse
+	var addURL string
+	var xcsrf string
+	err = retry(3, 300*time.Millisecond, func() error {
+		var err error
+		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, matchedItem.url)
+		return err
+	})
+	// st, sizes, addURL, xcsrf, err := GetSizeInfo(session, matchedItem.url)
+	if err != nil {
+		log.Error(err)
+		return false, err
+	}
+	log.Debugf("%d %s %v %s %s", i, st, sizeResponse, addURL, xcsrf)
+	time.Sleep(800 * time.Millisecond)
 
-	time.Sleep(1000 * time.Millisecond)
+	// Add the item to cart
+	pickedSizeID, err := PickSize(task.Item, sizeResponse)
+	if err != nil {
+		log.Errorf("%d Unable to find size", i)
+		return false, err
+	}
+	var atcSuccess bool
+	err = retry(3, 300*time.Millisecond, func() error {
+		var err error
+		atcSuccess, err = AddToCart(session, addURL, xcsrf, st, pickedSizeID)
+		return err
+	})
+	// atcSuccess, err := AddToCart(session, addURL, xcsrf, st, (*sizes)[pickedSize])
+	log.Debugf("%d ATC: %t", i, atcSuccess)
+	time.Sleep(600 * time.Millisecond)
 
-	atdSuccess := AddToCart(session, addURL, xcsrf, st, (*sizes)["Medium"])
-	log.Debugf("%d ATC: %t", i, atdSuccess)
-
-	time.Sleep(1300 * time.Millisecond)
-
-	log.Debugf("%d Using data %s", i, task.Account)
-	checkoutSuccess := Checkout(session, xcsrf, &task.Account)
+	// Checkout
+	log.Debugf("%d Checking out using data %s", i, task.Account)
+	var checkoutSuccess bool
+	err = retry(3, 50*time.Millisecond, func() error {
+		var err error
+		checkoutSuccess, err = Checkout(session, xcsrf, &task.Account)
+		return err
+	})
+	// checkoutSuccess := Checkout(session, xcsrf, &task.Account)
 	log.Debugf("%d Checkout: %t", i, checkoutSuccess)
 
 	return true, nil
+}
+
+func retry(attempts int, sleep time.Duration, f func() error) error {
+	if err := f(); err != nil {
+		if s, ok := err.(stop); ok {
+			// Return the original error for later checking
+			return s.error
+		}
+
+		if attempts--; attempts > 0 {
+			// Add some randomness to prevent creating a Thundering Herd
+			jitter := time.Duration(rand.Int63n(int64(sleep)))
+			sleep = sleep + jitter/2
+
+			time.Sleep(sleep)
+			return retry(attempts, 2*sleep, f)
+		}
+		return err
+	}
+
+	return nil
+}
+
+type stop struct {
+	error
 }

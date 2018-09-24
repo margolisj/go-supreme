@@ -12,14 +12,12 @@ go build
 
 ## TODO:
 ### Current
-* Add better retrying
 * Add task status again and make GUI to keep track of status
   * https://github.com/gizak/termui
   * https://github.com/jroimartin/gocui
   * https://github.com/gdamore/tcell
 * Supreme API HTML source Tests
   * Look for articles on page
-  * Look for st and s on product page
 * Move checkout into Tasks and make it a class function
 * Restock monitor
   * Commandline to run both
@@ -52,6 +50,10 @@ go build
   * Update go code - 9/24
   * Update python code - 9/24
 * Add a verify task function - 9/24
+* Add better retrying - 9/24
+* Fixed bug that only selected medium size - 9/24
+* Fixed code to allow for selecting single size items - 9/24
+* Supreme API HTML source Tests - Look for st and s on product page - 9/24
 
 ## Objectives
 

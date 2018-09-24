@@ -52,20 +52,22 @@ skate -> https://www.supremenewyork.com/shop/all/skate
 
 // GetCollectionItems Gets the collection items from a specific category. If inStockOnly is true then
 // the function will only return instock items
-func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
+func GetCollectionItems(taskItem taskItem, inStockOnly bool) (*SupremeItems, error) {
 	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.Category
 	resp, err := grequests.Get(collectionURL, defaultRo)
 	if err != nil {
 		log.Error(err)
+		return nil, err
 	}
 	if resp.Ok != true {
-		log.Warn("GetCollectionItems request did not return OK")
+		return nil, errors.New("GetCollectionItems request did not return OK")
 	}
 
 	// Build goquery doc and find each article
 	doc, err := goquery.NewDocumentFromReader(resp.RawResponse.Body)
 	if err != nil {
 		log.Error(err)
+		return nil, err
 	}
 	var items SupremeItems
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
@@ -81,36 +83,31 @@ func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
 		items = append(items, SupremeItem{name, color, url})
 	})
 
-	return &items
+	return &items, nil
 }
 
 // GetSizeInfo Gets st and size options for an item
-func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map[string]string, string, string) {
+func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, SizeResponse, string, string, error) {
 	itemURL := "https://www.supremenewyork.com" + itemURLSuffix
 	resp, err := grequests.Get(itemURL, defaultRo)
 	if err != nil {
 		log.Error(err)
+		return "", SizeResponse{}, "", "", err
 	}
 	if resp.Ok != true {
-		log.Warn("GetSizeInfo request did not return OK")
+		return "", SizeResponse{}, "", "", errors.New("GetSizeInfo request did not return OK")
 	}
 
 	// Build goquery doc and find each size and style codes
 	doc, err := goquery.NewDocumentFromReader(resp.RawResponse.Body)
 	if err != nil {
 		log.Error(err)
+		return "", SizeResponse{}, "", "", err
 	}
 
-	st, _ := doc.Find("#st").Last().Attr("value")
-
-	sizesToID := make(map[string]string)
-	doc.Find("#s > option").Each(func(i int, s *goquery.Selection) {
-		size := s.Text()
-		value, _ := s.Attr("value")
-		sizesToID[size] = value
-	})
-
-	addURL, _ := doc.Find("#cart-addf").Attr("action")
+	st, _ := doc.Find("#st").Last().Attr("value") //TODO: Fix error / eturn value if it doesnt exist
+	sizeResponse := parseSizes(doc)
+	addURL, _ := doc.Find("#cart-addf").Attr("action") //TODO: Fix error / eturn value if it doesnt exist
 
 	// Get xcsrf code
 	var xcsrf string
@@ -118,11 +115,55 @@ func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map
 		xcsrf, _ = s.Attr("content")
 	})
 
-	return st, &sizesToID, addURL, xcsrf
+	return st, sizeResponse, addURL, xcsrf, nil
+}
+
+// SizeResponse holds either a single size or a pointer to a map
+// of multiple sizes
+type SizeResponse struct {
+	singleSizeID  string
+	multipleSizes *map[string]string
+}
+
+func parseSizes(doc *goquery.Document) SizeResponse {
+	// Check for single size and return if found
+	singleVal, exists := doc.Find("#s").Attr("value")
+	if exists {
+		return SizeResponse{
+			singleSizeID:  singleVal,
+			multipleSizes: nil,
+		}
+	}
+
+	// Find the multiple sizes
+	sizesToID := make(map[string]string)
+	doc.Find("#s > option").Each(func(i int, s *goquery.Selection) {
+		size := s.Text()
+		value, _ := s.Attr("value")
+		sizesToID[size] = value
+	})
+	return SizeResponse{
+		singleSizeID:  "",
+		multipleSizes: &sizesToID,
+	}
+}
+
+// PickSize picks a size out of the size map
+func PickSize(taskItem taskItem, sizes SizeResponse) (string, error) {
+	if taskItem.Size == "" {
+		return sizes.singleSizeID, nil
+	}
+	for size, sizeID := range *sizes.multipleSizes {
+		if strings.ToLower(taskItem.Size) == strings.ToLower(size) {
+			return sizeID, nil
+		}
+	}
+
+	return "", errors.New("Unable to find size")
 }
 
 // AddToCart adds an item to the cart
-func AddToCart(session *grequests.Session, addURL string, xcsrf string, st string, s string) bool {
+func AddToCart(session *grequests.Session, addURL string, xcsrf string, st string, s string) (bool, error) {
 	localRo := &grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
@@ -150,21 +191,20 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 
 	if err != nil {
 		log.Error("Error addding to cart", err)
-		return false
+		return false, err
 	}
 
 	if resp.Ok != true {
-		log.Warn("ATC Req did not return OK")
 		log.Warn(resp.RawResponse.Request)
 		log.Warn(resp.RawResponse)
-		return false
+		return false, errors.New("ATC Req did not return OK")
 	}
 
-	return true
+	return false, nil
 }
 
 // Checkout Checks out a task. If there is an issue with
-func Checkout(session *grequests.Session, xcsrf string, account *Account) bool {
+func Checkout(session *grequests.Session, xcsrf string, account *Account) (bool, error) {
 
 	postData := map[string]string{
 		"utf8":                     "✓",
@@ -211,7 +251,7 @@ func Checkout(session *grequests.Session, xcsrf string, account *Account) bool {
 
 	if err != nil {
 		log.Error("Checkout Error: ", err)
-		return false
+		return false, err
 	}
 
 	log.Debug("----------------RESPONSE----------------")
@@ -224,7 +264,7 @@ func Checkout(session *grequests.Session, xcsrf string, account *Account) bool {
 
 	if resp.Ok != true {
 		log.Warn("Checkout request did not return OK")
-		return false
+		return false, err
 	}
 
 	// TODO: Is there a response that doesn't queue? If not we can get rid of redundent
@@ -236,25 +276,25 @@ func Checkout(session *grequests.Session, xcsrf string, account *Account) bool {
 			"reason":   "failed",
 			"response": respString,
 		}).Error("Checkout failed")
-		return false
+		return false, nil
 	} else if strings.Contains(respString, "outOfStock") {
 		log.WithFields(log.Fields{
 			"reason":   "outOfStock",
 			"response": respString,
 		}).Error("Checkout failed")
-		return false
+		return false, nil
 	}
 
-	return true
+	return true, nil
 }
 
-func queue(session *grequests.Session, respString string) bool {
+func queue(session *grequests.Session, respString string) (bool, error) {
 	var queueJSON checkoutJSON
 	if err := json.Unmarshal([]byte(respString), &queueJSON); err != nil {
 		log.WithFields(log.Fields{
 			"response": respString,
 		}).Error("Unable to marshall json")
-		return false
+		return false, nil
 	}
 
 	time.Sleep(10000)
@@ -274,14 +314,14 @@ func queue(session *grequests.Session, respString string) bool {
 	resp, err := session.Get(fmt.Sprintf("https://www.supremenewyork.com/checkout/%s/status.json", queueJSON.Slug), localRo)
 	if err != nil {
 		log.Error("Queue Error: ", err)
-		return false
+		return false, err
 	}
 
 	if resp.Ok != true {
 		log.Warn("Queue did not return OK")
 		log.Warn(resp.RawResponse.Request)
 		log.Warn(resp.RawResponse)
-		return false
+		return false, errors.New("Queue did not return OK")
 	}
 
 	if strings.Contains(respString, "queued") {
@@ -291,20 +331,20 @@ func queue(session *grequests.Session, respString string) bool {
 			"reason":   "failed",
 			"response": respString,
 		}).Error("Queue failed")
-		return false
+		return false, nil
 	} else if strings.Contains(respString, "outOfStock") {
 		log.WithFields(log.Fields{
 			"reason":   "outOfStock",
 			"response": respString,
 		}).Error("Queue failed")
-		return false
+		return false, nil
 	}
 
 	log.WithFields(log.Fields{
 		"respString": respString,
 	}).Info("Queue successful")
 
-	return true
+	return true, nil
 }
 
 func checkKeywords(keywords []string, supremeItemName string) bool {
