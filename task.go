@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"regexp"
 )
 
 // Person is a struct modeling personal information
@@ -76,4 +78,65 @@ func ImportTasksFromJSON(filename string) ([]Task, error) {
 	}
 
 	return tasks, nil
+}
+
+// VerifyTask verifies the information provided in the task to make sure it is
+// what the rest of the applciation expects
+func VerifyTask(task *Task) (bool, error) {
+	// Phone number
+	phoneMatch, _ := regexp.MatchString(`\d{3}-\d{3}-\d{4}`, task.Account.Person.PhoneNumber)
+	if !phoneMatch || len(task.Account.Person.PhoneNumber) != 12 {
+		return false, errors.New("Phone number was not correct")
+	}
+
+	// Credit card numbers
+	ccFour, _ := regexp.MatchString(`\d{4} \d{4} \d{4} \d{4}`, task.Account.Card.Number)
+	ccAmex, _ := regexp.MatchString(`\d{4} \d{6} \d{5}`, task.Account.Card.Number)
+	if !(ccFour || ccAmex) {
+		return false, errors.New("Credit card number was not correct")
+
+	}
+
+	// CVV
+	ccvMatch := false
+	if ccFour && len(task.Account.Card.Cvv) == 3 {
+		ccvMatch, _ = regexp.MatchString(`\d{3}`, task.Account.Card.Cvv)
+	} else if ccAmex && len(task.Account.Card.Cvv) == 4 {
+		ccvMatch, _ = regexp.MatchString(`\d{4}`, task.Account.Card.Cvv)
+	}
+	if !ccvMatch {
+		return false, errors.New("CVV was not correct")
+	}
+
+	// Month
+	monthMatch, _ := regexp.MatchString(`\d{2}`, task.Account.Card.Month)
+	if !monthMatch || len(task.Account.Card.Month) != 2 {
+		return false, errors.New("Month was not correct")
+	}
+
+	// Year
+	yearMatch, _ := regexp.MatchString(`\d{4}`, task.Account.Card.Year)
+	if !yearMatch || len(task.Account.Card.Year) != 4 {
+		return false, errors.New("Year was not correct")
+	}
+
+	return true, nil
+}
+
+// VerifyTasks is a helper function that verifies multiple tasks and returns
+// a slice containing the task number and the error
+func VerifyTasks(tasks *[]Task) (bool, map[int]error) {
+	allValid := true
+	taskErrors := make(map[int]error)
+	for i, task := range *tasks {
+		valid, err := VerifyTask(&task)
+		if !valid {
+			allValid = false
+			taskErrors[i] = err
+		}
+	}
+	if !allValid {
+		return false, taskErrors
+	}
+	return true, nil
 }

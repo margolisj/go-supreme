@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -57,16 +58,14 @@ func TestTaskMarshal(t *testing.T) {
 	}
 }
 
-// TestFullTaskUnmarhsal tests basic unmarhsalling of the
 func TestFullTaskUnmarhsal(t *testing.T) {
 	s := []byte(`{"taskName":"Task1","item":{"keywords":["shaolin"],"category":"hats","size":"","color":"orange"},"account":{"person":{"firstname":"Jax","lastname":"Blax","email":"none@none.com","phoneNumber":"215-834-1857"},"address":{"address1":"102 Broad Street","address2":"","zipcode":"12345","city":"Philadeliphia","state":"PA","country":"USA"},"card":{"cardtype":"visa","number":"1285 4827 5948 2017","month":"02","year":"2019","cvv":"847"}}}`)
 	var tas Task
 	if err := json.Unmarshal(s, &tas); err != nil {
-		panic(err)
+		t.Error(err)
 	}
 }
 
-// TestReadTasks tests reading
 func TestReadTasks(t *testing.T) {
 	tasks, err := ImportTasksFromJSON("testdata/validSingleTask.json")
 	if err != nil {
@@ -75,4 +74,135 @@ func TestReadTasks(t *testing.T) {
 	assert.Equal(t, 1, len(tasks))
 	task := tasks[0]
 	assert.Equal(t, "shopsafe 0 0RU3", task.TaskName)
+}
+
+func TestVerifyTaskValid(t *testing.T) {
+	task := testTask()
+	valid, err := VerifyTask(&task)
+	if err != nil {
+		t.Log(err)
+	}
+	assert.True(t, valid)
+}
+
+func TestVerifyTaskValidAmex(t *testing.T) {
+	task := testTask()
+	task.Account.Card.Number = "1234 567890 12345"
+	task.Account.Card.Cvv = "1234"
+	valid, err := VerifyTask(&task)
+	if err != nil {
+		t.Log(err)
+	}
+	assert.True(t, valid)
+}
+
+func TestVerifyTaskBadPhoneNumber(t *testing.T) {
+	task := testTask()
+	// No dashes
+	task.Account.Person.PhoneNumber = "954 876 6543"
+	valid, err := VerifyTask(&task)
+	assert.Equal(t, errors.New("Phone number was not correct"), err)
+	assert.False(t, valid)
+
+	// Missing number
+	task.Account.Person.PhoneNumber = "954-876-154"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("Phone number was not correct"), err)
+	assert.False(t, valid)
+
+	// Additional number
+	task.Account.Person.PhoneNumber = "954-876-15434"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("Phone number was not correct"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskBadCCNumber(t *testing.T) {
+	task := testTask()
+	// Missing number
+	task.Account.Card.Number = "1234 1548 1548 125"
+	valid, err := VerifyTask(&task)
+	assert.Equal(t, errors.New("Credit card number was not correct"), err)
+	assert.False(t, valid)
+
+	// Dashes
+	task.Account.Card.Number = "1234-1548-1548-1548"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("Credit card number was not correct"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskBadCvv(t *testing.T) {
+	task := testTask()
+	// ccFour missing number
+	task.Account.Card.Cvv = "12"
+	valid, err := VerifyTask(&task)
+	assert.Error(t, errors.New("CVV was not correct"), err)
+	assert.False(t, valid)
+
+	// ccFour additional number
+	task.Account.Card.Cvv = "1234"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("CVV was not correct"), err)
+	assert.False(t, valid)
+
+	task.Account.Card.Number = "1234 567890 12345"
+	// amex missing number
+	task.Account.Card.Cvv = "123"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("CVV was not correct"), err)
+	assert.False(t, valid)
+
+	// amex additional number
+	task.Account.Card.Cvv = "12345"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("CVV was not correct"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskBadMonth(t *testing.T) {
+	task := testTask()
+	// Missing number
+	task.Account.Card.Month = "4"
+	valid, err := VerifyTask(&task)
+	assert.Equal(t, errors.New("Month was not correct"), err)
+	assert.False(t, valid)
+
+	// Additional number
+	task.Account.Card.Month = "122"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("Month was not correct"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskBadYear(t *testing.T) {
+	task := testTask()
+	// Missing number
+	task.Account.Card.Year = "21"
+	valid, err := VerifyTask(&task)
+	assert.Equal(t, errors.New("Year was not correct"), err)
+	assert.False(t, valid)
+
+	// Additional number
+	task.Account.Card.Year = "20199"
+	valid, err = VerifyTask(&task)
+	assert.Equal(t, errors.New("Year was not correct"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTasks(t *testing.T) {
+	tasks := []Task{testTask(), testTask(), testTask()}
+	valid, errs := VerifyTasks(&tasks)
+	assert.True(t, valid)
+	assert.Nil(t, errs)
+}
+
+func TestVertifyTasksBad(t *testing.T) {
+	tasks := []Task{testTask(), testTask(), testTask()}
+	tasks[2].Account.Card.Number = "1234-5849-2894-6753"
+	valid, errs := VerifyTasks(&tasks)
+	assert.False(t, valid)
+	assert.Equal(t, map[int]error{
+		2: errors.New("Credit card number was not correct"),
+	}, errs)
 }

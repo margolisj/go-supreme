@@ -37,6 +37,11 @@ func main() {
 		log.Panic("Unable to correctly parse tasks.") // Will call panic
 	}
 
+	valid, errs := VerifyTasks(&tasks)
+	if !valid {
+		log.Panic(errs)
+	}
+
 	log.Infof("Loaded %d tasks. Waiting to run.", len(tasks))
 
 	// Wait for the comand to start

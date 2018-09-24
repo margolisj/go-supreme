@@ -12,7 +12,6 @@ go build
 
 ## TODO:
 ### Current
-* Add a verify task function which makes sure -'s are in phone number and credit cards are spaced correctly
 * Add better retrying
 * Add task status again and make GUI to keep track of status
   * https://github.com/gizak/termui
@@ -52,13 +51,14 @@ go build
 * Fix weird task struct formatting - 9/24
   * Update go code - 9/24
   * Update python code - 9/24
+* Add a verify task function - 9/24
 
 ## Objectives
 
 ### 9/20/18
 * Test - SUCESSFUL, 3 Liquid Tees but ended in crash
 
-### 9/20/18
+### 9/27/18
 * Test queueing properly
 * Run more versions:
   * Find beta testers
@@ -70,6 +70,8 @@ go build
 ### Libraries
 * https://godoc.org/github.com/levigross/grequests
 * https://godoc.org/github.com/PuerkitoBio/goquery
+* https://github.com/stretchr/testify
+* https://godoc.org/github.com/sirupsen/logrus
 
 ### Code Examples
 * http://polyglot.ninja/golang-making-http-requests/
@@ -78,3 +80,5 @@ go build
 * https://gist.github.com/life1347/69b9f60410070b2609ad2d0779d30cbf
 * https://gitlab.com/brandonryan/example/blob/master/logrus/async_test.go
 * https://stackoverflow.com/questions/48305425/json-key-can-either-be-a-string-or-an-object
+* https://smartystreets.com/blog/2015/02/go-testing-part-1-vanillla
+* https://medium.com/@gosamv/using-gos-context-library-for-logging-4a8feea26690
