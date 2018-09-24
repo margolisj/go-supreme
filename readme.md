@@ -3,7 +3,6 @@ Buys some supreme stuff
 
 ## TODO:
 ### Current
-* Attempt to purge credentials from old commits?
 * Add better logging
 * Add better testing
   * Clean up current Tests and separate networked and non-networked tests
@@ -25,11 +24,12 @@ Buys some supreme stuff
 * Add gcapture code in case they revert
 
 ### Completed
-* Finish API - 8/19
-  * Finish queuing, see js version - 8/19
-* Add worker pool - 8/20
-* Add task importing - 8/20
-* Create task generator in json - 8/20 (in python)
+* Finish API - 9/19
+  * Finish queuing, see js version - 9/19
+* Add worker pool - 9/20
+* Add task importing - 9/20
+* Create task generator in json - 9/20 (in python)
+* Attempt to purge credentials from old commits - 9/23
 
 ## Objectives
 

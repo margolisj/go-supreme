@@ -9,14 +9,14 @@ type person struct {
 	Firstname   string `json:"firstname"`
 	Lastname    string `json:"lastname"`
 	Email       string `json:"email"`
-	PhoneNumber string `json:"phoneNumber"`
+	PhoneNumber string `json:"phoneNumber"` // Phone numbers must have dashes
 }
 
 type card struct {
 	Cardtype string `json:"cardtype"`
-	Number   string `json:"number"`
-	Month    string `json:"month"`
-	Year     string `json:"year"`
+	Number   string `json:"number"` // Card numbers must have spaces "XXXX XXXX XXXX XXXX"
+	Month    string `json:"month"`  // Two digit month, ex. 03
+	Year     string `json:"year"`   // 4 digit year, ex. 2019
 	Cvv      string `json:"cvv"`
 }
 
