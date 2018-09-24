@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/levigross/grequests"
+	log "github.com/sirupsen/logrus"
 )
 
 const sharedUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36"
@@ -37,29 +37,40 @@ type checkoutJSON struct {
 // SupremeItems a slice of supreme items
 type SupremeItems []SupremeItem
 
-//GetCollectionItems Gets the collection items
-//TODO: make this match?
+/* These are the collection "names" -> actual urls
+jackets -> https://www.supremenewyork.com/shop/all/jackets
+shirts -> https://www.supremenewyork.com/shop/all/shirts
+tops/sweaters -> https://www.supremenewyork.com/shop/all/tops_sweaters
+sweatshirts -> https://www.supremenewyork.com/shop/all/sweatshirts
+pants -> https://www.supremenewyork.com/shop/all/pants
+t-shirts -> https://www.supremenewyork.com/shop/all/t-shirts
+hats -> https://www.supremenewyork.com/shop/all/hats
+bags -> https://www.supremenewyork.com/shop/all/bags
+accessories -> https://www.supremenewyork.com/shop/all/accessories
+skate -> https://www.supremenewyork.com/shop/all/skate
+*/
+
+// GetCollectionItems Gets the collection items from a specific category. If inStockOnly is true then
+// the function will only return instock items
 func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
 	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.Category
-
 	resp, err := grequests.Get(collectionURL, defaultRo)
-
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 	if resp.Ok != true {
-		log.Println("Request did not return OK")
+		log.Warn("GetCollectionItems request did not return OK")
 	}
-	// doc, err := goquery.NewDocumentFromReader(strings.NewReader(data))
-	// log.Println(resp.String())
+
+	// Build goquery doc and find each article
 	doc, err := goquery.NewDocumentFromReader(resp.RawResponse.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	var items SupremeItems
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
-		// For each item found, get the band and title
+		// First check sold out status
+		// TODO: Rename this variable / get logic clear
 		soldOut := s.Find("a .sold_out_tag").Size() == 0
 		if inStockOnly && !soldOut {
 			return
@@ -68,28 +79,24 @@ func GetCollectionItems(taskItem taskItem, inStockOnly bool) *SupremeItems {
 		name := nameSelector.Text()
 		url, _ := nameSelector.Attr("href")
 		color := s.Find("p .name-link").Text()
-		fmt.Printf("%s %s %t %s\n", name, color, soldOut, url)
 		items = append(items, SupremeItem{name, color, url})
 	})
 
-	fmt.Printf("Found %d items in collection\n", len(items))
 	return &items
 }
 
 // GetSizeInfo Gets st and size options for an item
 func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map[string]string, string, string) {
 	itemURL := "https://www.supremenewyork.com" + itemURLSuffix
-
 	resp, err := grequests.Get(itemURL, defaultRo)
-
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 	if resp.Ok != true {
-		log.Println("Request did not return OK")
+		log.Warn("GetSizeInfo request did not return OK")
 	}
-	// doc, err := goquery.NewDocumentFromReader(strings.NewReader(data))
-	// log.Println(resp.String())
+
+	// Build goquery doc and find each size and style codes
 	doc, err := goquery.NewDocumentFromReader(resp.RawResponse.Body)
 	if err != nil {
 		log.Fatal(err)
@@ -102,11 +109,12 @@ func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map
 		size := s.Text()
 		value, _ := s.Attr("value")
 		sizesToID[size] = value
-		fmt.Printf("%s %s\n", size, value)
 	})
 
 	addURL, _ := doc.Find("#cart-addf").Attr("action")
 
+	// Get xcsrf code
+	// TODO: Figure out if I shoudl move this somewhere else
 	var xcsrf string
 	doc.Find("[name=\"csrf-token\"]").Each(func(i int, s *goquery.Selection) {
 		xcsrf, _ = s.Attr("content")
@@ -117,7 +125,6 @@ func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, *map
 
 // AddToCart adds an item to the cart
 func AddToCart(session *grequests.Session, addURL string, xcsrf string, st string, s string) bool {
-	// localRo := copy(&defaultRo)
 	localRo := &grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
@@ -149,60 +156,17 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 	}
 
 	if resp.Ok != true {
-		log.Println("ATC Req did not return OK")
-		log.Println(resp.RawResponse.Request)
-		log.Println(resp.RawResponse)
+		log.Warn("ATC Req did not return OK")
+		log.Warn(resp.RawResponse.Request)
+		log.Warn(resp.RawResponse)
 		return false
 	}
 
 	return true
 }
 
-// func fakeFirstCheckout(session *grequests.Session, xcsrf string, account *account) {
-// 	queryData := map[string]string{
-// 		"utf8":                     "✓",
-// 		"authenticity_token":       xcsrf,
-// 		"order[billing_name]":      account.person.Firstname + " " + account.person.Lastname,
-// 		"order[email]":             account.person.Email,
-// 		"order[tel]":               account.person.PhoneNumber,
-// 		"order[billing_address]":   account.address.address1,
-// 		"order[billing_address_2]": account.address.address2,
-// 		"order[billing_zip]":       account.address.zipcode,
-// 		"order[billing_city]":      account.address.city,
-// 		"order[billing_state]":     account.address.state,
-// 		"order[billing_country]":   account.address.country,
-// 		"asec":                     "Rmasn",
-// 		"same_as_billing_address":  "1",
-// 		"store_credit_id":          "",
-// 		"credit_card[nlb]":         "",
-// 		"credit_card[month]":       account.card.month,
-// 		"credit_card[year]":        account.card.year,
-// 		"credit_card[rvv]":         "",
-// 		"order[terms]":             "0",
-// 		"g-recaptcha-response":     "",
-// 		"credit_card[vval]":        "",
-// 		"cnt":                      "1",
-// 	}
-// 	ro := &grequests.RequestOptions{
-// 		Params: queryData,
-// 	}
-
-// 	resp, err := grequests.Get("https://www.supremenewyork.com/checkout.js", ro)
-
-// 	if err != nil {
-// 		log.Fatal("Js Checkout Error: ", err)
-// 	}
-
-// 	if resp.Ok != true {
-// 		log.Println("Js Checkout request did not return OK")
-// 		log.Println(resp.RawResponse.Request)
-// 	}
-
-// }
-
-// Checkout Checks out a task
+// Checkout Checks out a task. If there is an issue with
 func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
-	// fakeFirstCheckout(session, xcsrf, account)
 
 	postData := map[string]string{
 		"utf8":                     "✓",
@@ -226,7 +190,7 @@ func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
 		"credit_card[rvv]":         account.Card.Cvv,
 		// "order[terms]":" 0", // Don't think we actually need this other one
 		"order[terms]": "1",
-		// "credit_card[vval]": "", // No idea what this is still doing here
+		// "credit_card[vval]": "", // No idea what this is still doing here, old credit card info still currently alive on thier website
 	}
 
 	localRo := &grequests.RequestOptions{
@@ -252,30 +216,34 @@ func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
 		return false
 	}
 
+	log.Debug("----------------RESPONSE----------------")
+	respString := resp.String()
+	log.Debug(respString)
+	log.Debug(resp.RawResponse)
+
+	log.Debug("----------------REQUEST----------------")
+	log.Debug(resp.RawResponse.Request)
+
 	if resp.Ok != true {
-		log.Println("Request did not return OK")
-		log.Println(resp.RawResponse.Request)
-		log.Println(resp.RawResponse)
+		log.Warn("Checkout request did not return OK")
+		return false
 	}
 
-	// var inter interface{}
-	// err = resp.JSON(inter)
-	// if err != nil {
-	// 	log.Fatal("Error marshalling json", err)
-	// } else {
-	// 	log.Println(inter)
-	// }
-	log.Println("----------------RESPONSE----------------")
-	respString := resp.String()
-	log.Println(respString)
-	log.Println(resp.RawResponse)
-
-	log.Println("----------------REQUEST----------------")
-	log.Println(resp.RawResponse.Request)
-
+	// TODO: Is there a response that doesn't queue? If not we can get rid of redundent
+	// return false logic below
 	if strings.Contains(respString, "queued") {
 		return queue(session, respString)
-	} else if strings.Contains(respString, "failed") || strings.Contains(respString, "outOfStock") {
+	} else if strings.Contains(respString, "failed") {
+		log.WithFields(log.Fields{
+			"reason":   "failed",
+			"response": respString,
+		}).Fatal("Checkout failed")
+		return false
+	} else if strings.Contains(respString, "outOfStock") {
+		log.WithFields(log.Fields{
+			"reason":   "outOfStock",
+			"response": respString,
+		}).Fatal("Checkout failed")
 		return false
 	}
 
@@ -285,8 +253,12 @@ func Checkout(session *grequests.Session, xcsrf string, account *account) bool {
 func queue(session *grequests.Session, respString string) bool {
 	var queueJSON checkoutJSON
 	if err := json.Unmarshal([]byte(respString), &queueJSON); err != nil {
-		panic(err)
+		log.WithFields(log.Fields{
+			"response": respString,
+		}).Fatal("Unable to marshall json")
+		return false
 	}
+
 	time.Sleep(10000)
 
 	localRo := &grequests.RequestOptions{
@@ -308,22 +280,32 @@ func queue(session *grequests.Session, respString string) bool {
 	}
 
 	if resp.Ok != true {
-		log.Println("Queue did not return OK")
-		log.Println(resp.RawResponse.Request)
-		log.Println(resp.RawResponse)
+		log.Warn("Queue did not return OK")
+		log.Warn(resp.RawResponse.Request)
+		log.Warn(resp.RawResponse)
+		return false
 	}
 
 	if strings.Contains(respString, "queued") {
 		return queue(session, resp.String())
 	} else if strings.Contains(respString, "failed") {
-		fmt.Printf("Failed: %s\n", respString)
+		log.WithFields(log.Fields{
+			"reason":   "failed",
+			"response": respString,
+		}).Fatal("Queue failed")
 		return false
 	} else if strings.Contains(respString, "outOfStock") {
-		fmt.Printf("Out Of Stock: %s\n", respString)
+		log.WithFields(log.Fields{
+			"reason":   "outOfStock",
+			"response": respString,
+		}).Fatal("Queue failed")
 		return false
 	}
 
-	fmt.Printf("Success!: %s\n", respString)
+	log.WithFields(log.Fields{
+		"respString": respString,
+	}).Info("Queue successful")
+
 	return true
 }
 

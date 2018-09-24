@@ -12,7 +12,6 @@ go build
 
 ## TODO:
 ### Current
-* Add better logging
 * Add better retrying
 * Move checkout into Tasks and make it a class function
 * Add better waiting functionality
@@ -22,6 +21,8 @@ go build
   * Update python code
 * Add proxy support
   * Figure out best practice for maybe options
+* Utilize default ro in api
+* Unify / pool inital item search
 
 ### Pipeline
 * Restock monitor
@@ -39,6 +40,7 @@ go build
 * Attempt to purge credentials from old commits - 9/23
 * Clean up testing - 9/23
 * Add go module system - 9/23
+* Add better logging - 9/23
 
 ## Objectives
 
