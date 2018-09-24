@@ -1,11 +1,18 @@
 # Go_Supreme
 Buys some supreme stuff
 
+## Getting Started
+1. Make sure you have a task file somewhere and its being pointed at in code.
+2. Build and go. Pretty easy.
+~~~~
+export GO111MODULE=on
+go build
+./supreme
+~~~~
+
 ## TODO:
 ### Current
 * Add better logging
-* Add better testing
-  * Clean up current Tests and separate networked and non-networked tests
 * Add better retrying
 * Move checkout into Tasks and make it a class function
 * Add better waiting functionality
@@ -30,6 +37,8 @@ Buys some supreme stuff
 * Add task importing - 9/20
 * Create task generator in json - 9/20 (in python)
 * Attempt to purge credentials from old commits - 9/23
+* Clean up testing - 9/23
+* Add go module system - 9/23
 
 ## Objectives
 
@@ -50,3 +59,4 @@ Buys some supreme stuff
 ### Code Examples
 * http://polyglot.ninja/golang-making-http-requests/
 * https://blog.alexellis.io/golang-writing-unit-tests/
+* https://help.github.com/articles/removing-sensitive-data-from-a-repository/
