@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	tasks, err := ImportTasksFromJSON("testFile.txt")
+	tasks, err := ImportTasksFromJSON("taskFiles/testFileV1.json")
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +28,6 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(len(tasks))
 	for i, fullTask := range tasks {
-
 		go func(i int, t FullTask) {
 			defer wg.Done()
 			fmt.Printf("%d Running task\n", &i)
@@ -88,9 +87,8 @@ func supremeCheckout(i int, task Task, acc account) (bool, error) {
 	if sizeID == "" {
 		fmt.Printf("%d Unable to find size %s", i, taskItem.Size)
 		return false, nil
-	} else {
-		fmt.Printf("%d Found size %s : %s", i, taskItem.Size, sizeID)
 	}
+	fmt.Printf("%d Found size %s : %s", i, taskItem.Size, sizeID)
 
 	atdSuccess := AddToCart(session, addURL, xcsrf, st, sizeID)
 	fmt.Printf("%d ATC: %t\n", i, atdSuccess)
