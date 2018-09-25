@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -75,12 +76,26 @@ func supremeCheckout(i int, task Task, acc account) (bool, error) {
 	st, sizes, addURL, xcsrf := GetSizeInfo(session, matchedItem.url)
 	fmt.Printf("%d %s %s %s\n", i, st, addURL, xcsrf)
 
-	time.Sleep(1000 * time.Millisecond)
+	time.Sleep(800 * time.Millisecond)
 
-	atdSuccess := AddToCart(session, addURL, xcsrf, st, (*sizes)["Medium"])
+	var sizeID string
+	for size, ID := range *sizes {
+		if strings.ToLower(size) == strings.ToLower(taskItem.Size) {
+			sizeID = ID
+			break
+		}
+	}
+	if sizeID == "" {
+		fmt.Printf("%d Unable to find size %s", i, taskItem.Size)
+		return false, nil
+	} else {
+		fmt.Printf("%d Found size %s : %s", i, taskItem.Size, sizeID)
+	}
+
+	atdSuccess := AddToCart(session, addURL, xcsrf, st, sizeID)
 	fmt.Printf("%d ATC: %t\n", i, atdSuccess)
 
-	time.Sleep(1300 * time.Millisecond)
+	time.Sleep(800 * time.Millisecond)
 
 	fmt.Printf("%d Using data %s \n", i, acc)
 	checkoutSuccess := Checkout(session, xcsrf, &acc)

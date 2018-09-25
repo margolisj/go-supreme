@@ -2,6 +2,7 @@
 supreme
 testData.go
 /taskFiles
+/logs
 
 # VScode
 /.vscode
