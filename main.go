@@ -56,17 +56,17 @@ func main() {
 		go func(i int, innerTask Task) {
 			// Use wait group to hold application open
 			defer wg.Done()
-			log.Infof("%d Running task.", &i)
+			log.Infof("%d Running task.", i)
 
 			success, err := supremeCheckout(i, innerTask)
 			if err != nil {
-				log.Error("Error after checkout", err)
+				log.Errorf("%d Error checkout: %s", i, err)
 			}
 
 			log.WithFields(log.Fields{
 				"thread":  i,
 				"success": success,
-			}).Info("Checkout has compelted")
+			}).Info("Checkout has compeleted")
 
 		}(i, task)
 
@@ -84,6 +84,7 @@ func supremeCheckout(i int, task Task) (bool, error) {
 	// Try to find the item provided in keywords etc
 	for {
 		supremeItems, err := GetCollectionItems(task.Item, true)
+
 		if err != nil {
 			log.Errorf("%d Error getting collection", 1)
 		} else {
@@ -141,10 +142,10 @@ func supremeCheckout(i int, task Task) (bool, error) {
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		log.Debugf("%d Checkout attempt: %d", i, attempt)
 		var err error
-		checkoutSuccess, err = Checkout(session, xcsrf, &task.Account)
+		checkoutSuccess, err = Checkout(i, session, xcsrf, &task.Account)
 		return err
 	})
 	log.Debugf("%d Checkout: %t", i, checkoutSuccess)
 
-	return true, nil
+	return checkoutSuccess, nil
 }

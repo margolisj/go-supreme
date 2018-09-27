@@ -238,7 +238,7 @@ func checkColor(taskItemColor string, supremeItemColor string) bool {
 }
 
 // Checkout Checks out a task. If there is an issue with
-func Checkout(session *grequests.Session, xcsrf string, account *Account) (bool, error) {
+func Checkout(i int, session *grequests.Session, xcsrf string, account *Account) (bool, error) {
 
 	postData := map[string]string{
 		"utf8":                     "✓",
@@ -290,14 +290,14 @@ func Checkout(session *grequests.Session, xcsrf string, account *Account) (bool,
 
 	log.Debug("----------------RESPONSE----------------")
 	respString := resp.String()
-	log.Debug(respString)
-	log.Debug(resp.RawResponse)
+	log.Debugf("%d %v", i, respString)
+	log.Debugf("%d %v", i, resp.RawResponse)
 
 	log.Debug("----------------REQUEST----------------")
-	log.Debug(resp.RawResponse.Request)
+	log.Debugf("%d %v", i, resp.RawResponse.Request)
 
 	if resp.Ok != true {
-		log.Warn("Checkout request did not return OK")
+		log.Warnf("%d Checkout request did not return OK", i)
 		return false, err
 	}
 

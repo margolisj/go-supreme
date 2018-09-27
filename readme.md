@@ -12,18 +12,19 @@ go build
 
 ## TODO:
 ### Current
-* Add task status again and make GUI to keep track of status
-  * https://github.com/gizak/termui
-  * https://github.com/jroimartin/gocui
-  * https://github.com/gdamore/tcell
+* Bugs:
+  * Bug when category is incorrect
+  * Apparent checkout bug
+  * Bug when finding x
 * Move checkout into Tasks and make it a class function
-* Restock monitor
-  * Commandline to run both
-    * https://github.com/spf13/cobra
-  * Add proxy support
-    * Figure out best practice for maybe options
+* Set task status during everything 
+* Add proxy support
+  * Figure out best practice for maybe options
+* Commandline to feed in file
+  * https://github.com/spf13/cobra
 
 ### Pipeline
+* Restock monitor
 * Replace logging with - https://github.com/rs/zerolog
 * Utilize default ro in api better
 * Unify / pool inital item search
@@ -32,6 +33,10 @@ go build
   * Model an interface for current and former system
 * Add gcapture code in case they revert
 * UI
+  * make GUI to keep track of status
+  * https://github.com/gizak/termui
+  * https://github.com/jroimartin/gocui
+  * https://github.com/gdamore/tcell
 
 ### Completed
 * Finish API - 9/19
