@@ -10,30 +10,83 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestFindItem tests finding a single item
-func TestFindItem(t *testing.T) {
+func TestFindSingleItem(t *testing.T) {
 	taskItem := taskItem{
 		[]string{"hanes", "boxer"},
 		"accessories",
 		"Medium",
 		"white",
 	}
-
-	supremeItems := SupremeItems{SupremeItem{
+	targetItem := SupremeItem{
 		"Supreme®/Hanes® Boxer Briefs (4 Pack)",
 		"White",
 		"shop/accessories/nckme38ul/iimyp2ogd",
-	}}
+	}
+	supremeItems := SupremeItems{targetItem}
 
-	_, err := FindItem(taskItem, supremeItems)
+	foundItem, err := findItem(taskItem, supremeItems)
+	if err != nil {
+		t.Fail()
+	}
+
+	assert.Equal(t, targetItem, foundItem)
+}
+
+func TestFindSingleItemFromPageSource(t *testing.T) {
+	f, err := os.Open("./testData/supremeSite/9-25-18-jackets.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	supremeItems := parseCategoryPage(doc, true)
+
+	taskItem := taskItem{
+		[]string{"bone"},
+		"jackets",
+		"Medium",
+		"Black",
+	}
+
+	foundItem, err := findItem(taskItem, *supremeItems)
 
 	if err != nil {
 		t.Fail()
 	}
+	assert.Equal(t, SupremeItem{
+		name:  "Bone Varsity Jacket",
+		color: "Black",
+		url:   "/shop/jackets/m2ihxzpus/wq798ar2h",
+	}, foundItem)
+}
+
+func TestParseCategoryPage(t *testing.T) {
+	f, err := os.Open("./testData/supremeSite/9-25-18-jackets.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	items := parseCategoryPage(doc, true)
+	assert.Equal(t, 10, len(*items))
+
+	item := (*items)[0]
+	assert.Equal(t, SupremeItem{
+		"Bone Varsity Jacket",
+		"Black",
+		"/shop/jackets/m2ihxzpus/wq798ar2h",
+	}, item)
 }
 
 func TestParseSizesSingleSize(t *testing.T) {
-	// dat, err := ioutil.ReadFile("/testData/supremeSite/9-24-18-lucettaLight.html")
 	f, err := os.Open("./testData/supremeSite/9-24-18-lucettaLight.html")
 	if err != nil {
 		t.Error(err)
@@ -49,7 +102,6 @@ func TestParseSizesSingleSize(t *testing.T) {
 }
 
 func TestParseSizesMultipleSizes(t *testing.T) {
-	// dat, err := ioutil.ReadFile("/testData/supremeSite/9-24-18-lucettaLight.html")
 	f, err := os.Open("./testData/supremeSite/9-24-18-blackTagless.html")
 	if err != nil {
 		t.Error(err)

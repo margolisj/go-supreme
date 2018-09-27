@@ -69,11 +69,17 @@ func GetCollectionItems(taskItem taskItem, inStockOnly bool) (*SupremeItems, err
 		log.Error(err)
 		return nil, err
 	}
+	items := parseCategoryPage(doc, inStockOnly)
+
+	return items, nil
+}
+
+func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *SupremeItems {
 	var items SupremeItems
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
 		// First check sold out status
 		soldOut := s.Find("a .sold_out_tag").Size() != 0
-		if inStockOnly && soldOut {
+		if inStockOnly && soldOut { // Ignore soldout items
 			return
 		}
 		nameSelector := s.Find("h1 .name-link")
@@ -83,7 +89,7 @@ func GetCollectionItems(taskItem taskItem, inStockOnly bool) (*SupremeItems, err
 		items = append(items, SupremeItem{name, color, url})
 	})
 
-	return &items, nil
+	return &items
 }
 
 // GetSizeInfo Gets st and size options for an item
@@ -201,6 +207,34 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 	}
 
 	return false, nil
+}
+
+// FindItem finds a task itime in the slice of supreme items
+func findItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error) {
+	for _, supItem := range supremeItems {
+		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
+			return supItem, nil
+		}
+	}
+
+	return SupremeItem{}, errors.New("Unable to match item")
+}
+
+func checkKeywords(keywords []string, supremeItemName string) bool {
+	for _, keyword := range keywords {
+		if !strings.Contains(strings.ToLower(supremeItemName), strings.ToLower(keyword)) {
+			return false
+		}
+	}
+	return true
+}
+
+// checkColor checks the supreme item color to see if it contains the task color
+func checkColor(taskItemColor string, supremeItemColor string) bool {
+	if taskItemColor == "" {
+		return true
+	}
+	return strings.Contains(strings.ToLower(strings.TrimSpace(supremeItemColor)), strings.ToLower(taskItemColor))
 }
 
 // Checkout Checks out a task. If there is an issue with
@@ -345,33 +379,4 @@ func queue(session *grequests.Session, respString string) (bool, error) {
 	}).Info("Queue successful")
 
 	return true, nil
-}
-
-func checkKeywords(keywords []string, supremeItemName string) bool {
-	for _, keyword := range keywords {
-		if !strings.Contains(strings.ToLower(supremeItemName), strings.ToLower(keyword)) {
-			return false
-		}
-	}
-	return true
-}
-
-// checkColor checks the supreme item color to see if it contains the task color
-func checkColor(taskItemColor string, supremeItemColor string) bool {
-	if taskItemColor == "" {
-		return true
-	}
-	return strings.Contains(strings.ToLower(strings.TrimSpace(supremeItemColor)), strings.ToLower(taskItemColor))
-}
-
-// FindItem finds a task itime in the slice of supreme items
-func FindItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error) {
-
-	for _, supItem := range supremeItems {
-		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
-			return supItem, nil
-		}
-	}
-
-	return SupremeItem{}, errors.New("Unable to match item")
 }
