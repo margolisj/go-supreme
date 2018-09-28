@@ -82,7 +82,7 @@ func ImportTasksFromJSON(filename string) ([]Task, error) {
 
 // VerifyTask verifies the information provided in the task to make sure it is
 // what the rest of the applciation expects
-func VerifyTask(task *Task) (bool, error) {
+func (task *Task) VerifyTask() (bool, error) {
 	// Phone number
 	phoneMatch, _ := regexp.MatchString(`\d{3}-\d{3}-\d{4}`, task.Account.Person.PhoneNumber)
 	if !phoneMatch || len(task.Account.Person.PhoneNumber) != 12 {
@@ -129,7 +129,7 @@ func VerifyTasks(tasks *[]Task) (bool, map[int]error) {
 	allValid := true
 	taskErrors := make(map[int]error)
 	for i, task := range *tasks {
-		valid, err := VerifyTask(&task)
+		valid, err := task.VerifyTask()
 		if !valid {
 			allValid = false
 			taskErrors[i] = err

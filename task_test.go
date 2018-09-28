@@ -78,7 +78,7 @@ func TestReadTasks(t *testing.T) {
 
 func TestVerifyTaskValid(t *testing.T) {
 	task := testTask()
-	valid, err := VerifyTask(&task)
+	valid, err := task.VerifyTask()
 	if err != nil {
 		t.Log(err)
 	}
@@ -89,7 +89,7 @@ func TestVerifyTaskValidAmex(t *testing.T) {
 	task := testTask()
 	task.Account.Card.Number = "1234 567890 12345"
 	task.Account.Card.Cvv = "1234"
-	valid, err := VerifyTask(&task)
+	valid, err := task.VerifyTask()
 	if err != nil {
 		t.Log(err)
 	}
@@ -100,19 +100,19 @@ func TestVerifyTaskBadPhoneNumber(t *testing.T) {
 	task := testTask()
 	// No dashes
 	task.Account.Person.PhoneNumber = "954 876 6543"
-	valid, err := VerifyTask(&task)
+	valid, err := task.VerifyTask()
 	assert.Equal(t, errors.New("Phone number was not correct"), err)
 	assert.False(t, valid)
 
 	// Missing number
 	task.Account.Person.PhoneNumber = "954-876-154"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("Phone number was not correct"), err)
 	assert.False(t, valid)
 
 	// Additional number
 	task.Account.Person.PhoneNumber = "954-876-15434"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("Phone number was not correct"), err)
 	assert.False(t, valid)
 }
@@ -121,13 +121,13 @@ func TestVerifyTaskBadCCNumber(t *testing.T) {
 	task := testTask()
 	// Missing number
 	task.Account.Card.Number = "1234 1548 1548 125"
-	valid, err := VerifyTask(&task)
+	valid, err := task.VerifyTask()
 	assert.Equal(t, errors.New("Credit card number was not correct"), err)
 	assert.False(t, valid)
 
 	// Dashes
 	task.Account.Card.Number = "1234-1548-1548-1548"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("Credit card number was not correct"), err)
 	assert.False(t, valid)
 }
@@ -136,26 +136,26 @@ func TestVerifyTaskBadCvv(t *testing.T) {
 	task := testTask()
 	// ccFour missing number
 	task.Account.Card.Cvv = "12"
-	valid, err := VerifyTask(&task)
+	valid, err := task.VerifyTask()
 	assert.Error(t, errors.New("CVV was not correct"), err)
 	assert.False(t, valid)
 
 	// ccFour additional number
 	task.Account.Card.Cvv = "1234"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("CVV was not correct"), err)
 	assert.False(t, valid)
 
 	task.Account.Card.Number = "1234 567890 12345"
 	// amex missing number
 	task.Account.Card.Cvv = "123"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("CVV was not correct"), err)
 	assert.False(t, valid)
 
 	// amex additional number
 	task.Account.Card.Cvv = "12345"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("CVV was not correct"), err)
 	assert.False(t, valid)
 }
@@ -164,13 +164,13 @@ func TestVerifyTaskBadMonth(t *testing.T) {
 	task := testTask()
 	// Missing number
 	task.Account.Card.Month = "4"
-	valid, err := VerifyTask(&task)
+	valid, err := task.VerifyTask()
 	assert.Equal(t, errors.New("Month was not correct"), err)
 	assert.False(t, valid)
 
 	// Additional number
 	task.Account.Card.Month = "122"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("Month was not correct"), err)
 	assert.False(t, valid)
 }
@@ -179,13 +179,13 @@ func TestVerifyTaskBadYear(t *testing.T) {
 	task := testTask()
 	// Missing number
 	task.Account.Card.Year = "21"
-	valid, err := VerifyTask(&task)
+	valid, err := task.VerifyTask()
 	assert.Equal(t, errors.New("Year was not correct"), err)
 	assert.False(t, valid)
 
 	// Additional number
 	task.Account.Card.Year = "20199"
-	valid, err = VerifyTask(&task)
+	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("Year was not correct"), err)
 	assert.False(t, valid)
 }
