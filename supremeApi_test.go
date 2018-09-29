@@ -85,6 +85,20 @@ func TestParseCategoryPage(t *testing.T) {
 		"/shop/jackets/m2ihxzpus/wq798ar2h",
 	}, item)
 }
+func TestParseEmptyCategoryPage(t *testing.T) {
+	f, err := os.Open("./testData/supremeSite/9-29-18-jackets-empty.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	items := parseCategoryPage(doc, true)
+	assert.Equal(t, 0, len(*items))
+}
 
 func TestParseSizesSingleSize(t *testing.T) {
 	f, err := os.Open("./testData/supremeSite/9-24-18-lucettaLight.html")
@@ -142,7 +156,7 @@ func TestPickSizeMultipleSizes(t *testing.T) {
 	item := taskItem{
 		[]string{"temp"},
 		"accessories",
-		"Medium", // No size
+		"Medium",
 		"blue",
 	}
 
@@ -157,6 +171,40 @@ func TestPickSizeMultipleSizes(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, "59759", itemID)
+}
+
+func TestPickSizeSingleSizeReturned(t *testing.T) {
+	item := taskItem{
+		[]string{"temp"},
+		"accessories",
+		"Medium",
+		"blue",
+	}
+
+	sizeResponse := SizeResponse{"60885", nil}
+
+	itemID, err := PickSize(item, sizeResponse)
+	assert.Error(t, err, "Unable to pick size")
+	assert.Equal(t, "", itemID)
+}
+
+func TestPickSizeMultipleSizesReturnedButNoneInTask(t *testing.T) {
+	item := taskItem{
+		[]string{"temp"},
+		"accessories",
+		"",
+		"blue",
+	}
+
+	sizeResponse := SizeResponse{"", &map[string]string{
+		"Small":  "59758",
+		"Medium": "59759",
+		"Large":  "59760",
+	}}
+
+	itemID, err := PickSize(item, sizeResponse)
+	assert.Error(t, err, "Unable to pick size")
+	assert.Equal(t, "", itemID)
 }
 
 func TestDesktopCheckoutResponsesUnmarshall(t *testing.T) {

@@ -156,16 +156,24 @@ func parseSizes(doc *goquery.Document) SizeResponse {
 
 // PickSize picks a size out of the size map
 func PickSize(taskItem taskItem, sizes SizeResponse) (string, error) {
+	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
+		if sizes.singleSizeID == "" {
+			return "", errors.New("Unable to pick size")
+		}
 		return sizes.singleSizeID, nil
 	}
-	for size, sizeID := range *sizes.multipleSizes {
-		if strings.ToLower(taskItem.Size) == strings.ToLower(size) {
-			return sizeID, nil
+
+	// Make sure we found sizes on the page before we check them
+	if sizes.multipleSizes != nil {
+		for size, sizeID := range *sizes.multipleSizes {
+			if strings.ToLower(taskItem.Size) == strings.ToLower(size) {
+				return sizeID, nil
+			}
 		}
 	}
 
-	return "", errors.New("Unable to find size")
+	return "", errors.New("Unable to pick size")
 }
 
 // AddToCart adds an item to the cart
