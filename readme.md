@@ -12,20 +12,20 @@ go build
 
 ## TODO:
 ### Current
-* Bugs:
-  * Bug when category is incorrect
-  * Apparent checkout bug
-  * Bug when finding x
-* Move checkout into Tasks and make it a class function
-* Set task status during everything 
+* Figure out how much time jitter adds to retrys, we probably want this kept to a minimum
+* Task Update:
+  * Add request object
+  * Set task status during everything
+  * Move checkout make it work off task
 * Add proxy support
-  * Figure out best practice for maybe options
-* Commandline to feed in file
+* Commandline to feed in file different commands
   * https://github.com/spf13/cobra
 
 ### Pipeline
+* Add authentication
+  * https://github.com/denisbrodbeck/machineid  
+* https://sequencediagram.org/ Diagram calls
 * Restock monitor
-* Replace logging with - https://github.com/rs/zerolog
 * Utilize default ro in api better
 * Unify / pool inital item search
 * Add mobile API
@@ -58,6 +58,11 @@ go build
 * Fixed code to allow for selecting single size items - 9/24
 * Supreme API HTML source Tests - Look for st and s on product page - 9/24
 * Supreme API HTML source Tests - Look for articles on page - 9/26
+* Bugs - 9/29
+  * Bug when category is incorrect, empty category but was unable to advance - Fixed the pick sizing algo but not sure how it happened
+  * Apparent checkout bug, unicode issue when printing out return string - Issue was trying to checkout when wasn't in cart
+  * Bug when no size is specified but it is a sized item - Same as first bug listed
+* Replace logging with: https://github.com/rs/zerolog - 9/29
 
 ## Objectives
 
@@ -65,6 +70,9 @@ go build
 * Test - SUCESSFUL, 3 Liquid Tees but ended in crash
 
 ### 9/27/18
+* Failed - Massive amount of user error, set up almost all of the item incorrectly
+
+### 10/6/18
 * Test queueing properly
 * Run more versions:
   * Find beta testers
@@ -77,7 +85,6 @@ go build
 * https://godoc.org/github.com/levigross/grequests
 * https://godoc.org/github.com/PuerkitoBio/goquery
 * https://github.com/stretchr/testify
-* https://godoc.org/github.com/sirupsen/logrus
 
 ### Code Examples
 * http://polyglot.ninja/golang-making-http-requests/

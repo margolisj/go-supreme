@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 // WriteStringToFile writes a string to a file
@@ -18,9 +22,9 @@ func WriteStringToFile(contents string) {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
+// retry should retry any function. Used to retry http requests
 func retry(attempts int, sleep time.Duration, f func(int) error) error {
 	if err := f(attempts); err != nil {
 		if s, ok := err.(stop); ok {
@@ -44,4 +48,29 @@ func retry(attempts int, sleep time.Duration, f func(int) error) error {
 
 type stop struct {
 	error
+}
+
+// setupLogging sets up a zerolog logger to our specifications
+func setupLogging() *zerolog.Logger {
+	// UNIX Time is faster and smaller than most timestamps
+	// If you set zerolog.TimeFieldFormat to an empty string,
+	// logs will write with UNIX time
+	zerolog.TimeFieldFormat = ""
+
+	// Minimum level currently set is debug
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
+	var logger zerolog.Logger
+	// Create file and set output to both if possible
+	filename := fmt.Sprintf("logs/logfile-%d.log", time.Now().Unix())
+	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err == nil {
+		mw := io.MultiWriter(os.Stdout, f)
+		logger = zerolog.New(mw)
+	} else {
+		logger = zerolog.New(os.Stdout)
+	}
+	logger = zerolog.New(os.Stderr)
+
+	return &logger
 }

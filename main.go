@@ -2,48 +2,34 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
-	"io"
 	"math/rand"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/levigross/grequests"
-	log "github.com/sirupsen/logrus"
 )
 
-func setupLogging() {
-	log.SetLevel(log.DebugLevel)
-	log.SetFormatter(&log.JSONFormatter{})
-
-	// Create file and set output to both if possible
-	filename := fmt.Sprintf("logs/logfile-%d.log", time.Now().Unix())
-	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		mw := io.MultiWriter(os.Stdout, f)
-		log.SetOutput(mw)
-	}
-
-}
+// Log is the main logging instance used in this application
+var log = setupLogging()
 
 func main() {
-	setupLogging()
 	rand.Seed(time.Now().UnixNano())
 
-	tasks, err := ImportTasksFromJSON("taskFiles/testFile.json")
+	tasks, err := ImportTasksFromJSON("taskFiles/testFileV2.json")
 	if err != nil {
-		log.Panic("Unable to correctly parse tasks.") // Will call panic
+		log.Fatal().Msg("Unable to correctly parse tasks.") // Will call panic
 	}
+	log.Info().Msg("Parsed task files.")
 
 	valid, errs := VerifyTasks(&tasks)
 	if !valid {
-		log.Panic(errs)
+		log.Fatal().Msgf("%+v", errs)
 	}
 
-	log.Infof("Loaded %d tasks. Waiting to run.", len(tasks))
+	log.Info().Msgf("Loaded %d tasks. Waiting to run.", len(tasks))
 
 	// Wait for the comand to start
 	fmt.Print("Press 'Enter' to continue...")
@@ -56,24 +42,40 @@ func main() {
 		go func(i int, innerTask Task) {
 			// Use wait group to hold application open
 			defer wg.Done()
-			log.Infof("%d Running task.", i)
+			log.Info().Msgf("%d Running task.", i)
 
 			success, err := supremeCheckout(i, innerTask)
 			if err != nil {
-				log.Errorf("%d Error checkout: %s", i, err)
+				log.Error().Msgf("%d Error checkout: %s", i, err)
 			}
 
-			log.WithFields(log.Fields{
-				"thread":  i,
-				"success": success,
-			}).Info("Checkout has compeleted")
+			log.Info().
+				Int("task", i).
+				Bool("success", success).
+				Msg("Checkout compeleted")
 
 		}(i, task)
-
 	}
 
 	wg.Wait()
+}
 
+func waitForItemMatch(i int, task Task) (SupremeItem, error) {
+	supremeItems, err := GetCollectionItems(&task, true)
+	if err != nil {
+		return SupremeItem{}, errors.New("Error getting collection items")
+	}
+
+	if len(*supremeItems) > 0 {
+		log.Debug().Msgf("Found %d items", len(*supremeItems))
+		matchedItem, err := findItem(task.Item, *supremeItems)
+		if err != nil {
+			return SupremeItem{}, errors.New("Items in collection but unable to find items")
+		}
+		return matchedItem, nil
+	}
+
+	return SupremeItem{}, errors.New("No matches found in collection")
 }
 
 func supremeCheckout(i int, task Task) (bool, error) {
@@ -83,24 +85,16 @@ func supremeCheckout(i int, task Task) (bool, error) {
 
 	// Try to find the item provided in keywords etc
 	for {
-		supremeItems, err := GetCollectionItems(task.Item, true)
-
+		// Get items in category
+		matchedItem, err = waitForItemMatch(i, task)
 		if err != nil {
-			log.Errorf("%d Error getting collection", 1)
+			log.Error().Err(err).Msgf("%d Error getting collection, sleeping.", 1)
 		} else {
-			if len(*supremeItems) > 0 {
-				matchedItem, err = findItem(task.Item, *supremeItems)
-			}
-			if err != nil {
-				log.Warnf("%d Error matching item, sleeping: %s", i, err.Error())
-			} else {
-				break
-			}
+			break
 		}
-
 		time.Sleep(300 * time.Millisecond)
 	}
-	log.Debugf("%d Found item %s", i, matchedItem)
+	log.Debug().Msgf("%d Found item %+v %s %s %s", i, matchedItem, matchedItem.color, matchedItem.name, matchedItem.url)
 
 	// Get the ATC info from the item page
 	var st string
@@ -108,44 +102,44 @@ func supremeCheckout(i int, task Task) (bool, error) {
 	var addURL string
 	var xcsrf string
 	err = retry(10, 50*time.Millisecond, func(attempt int) error {
-		log.Debugf("%d Checkout attempt: %d", i, attempt)
+		log.Debug().Msgf("%d Checkout attempt: %d", i, attempt)
 		var err error
 		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, matchedItem.url)
 		return err
 	})
 	if err != nil {
-		log.Error(err)
+		log.Error().Err(err)
 		return false, err
 	}
-	log.Debugf("%d %s %v %s %s", i, st, sizeResponse, addURL, xcsrf)
-	time.Sleep(600 * time.Millisecond)
+	log.Debug().Msgf("%d %s %+v %s %s", i, st, sizeResponse, addURL, xcsrf)
+	time.Sleep(800 * time.Millisecond)
 
 	// Add the item to cart
 	pickedSizeID, err := PickSize(task.Item, sizeResponse)
 	if err != nil {
-		log.Errorf("%d Unable to find size", i)
+		log.Error().Err(err).Msgf("%d Unable to pick size", i)
 		return false, err
 	}
 	var atcSuccess bool
 	err = retry(10, 50*time.Millisecond, func(attempt int) error {
-		log.Debugf("%d ATC attempt: %d", i, attempt)
+		log.Debug().Msgf("%d ATC attempt: %d", i, attempt)
 		var err error
 		atcSuccess, err = AddToCart(session, addURL, xcsrf, st, pickedSizeID)
 		return err
 	})
-	log.Debugf("%d ATC: %t", i, atcSuccess)
-	time.Sleep(600 * time.Millisecond)
+	log.Debug().Msgf("%d ATC: %t", i, atcSuccess)
+	time.Sleep(800 * time.Millisecond)
 
 	// Checkout
-	log.Debugf("%d Checking out using data %s", i, task.Account)
+	log.Debug().Msgf("%d Checking out using data %s", i, task.Account)
 	var checkoutSuccess bool
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		log.Debugf("%d Checkout attempt: %d", i, attempt)
+		log.Debug().Msgf("%d Checkout attempt: %d", i, attempt)
 		var err error
 		checkoutSuccess, err = Checkout(i, session, xcsrf, &task.Account)
 		return err
 	})
-	log.Debugf("%d Checkout: %t", i, checkoutSuccess)
+	log.Debug().Msgf("%d Checkout: %t", i, checkoutSuccess)
 
 	return checkoutSuccess, nil
 }
