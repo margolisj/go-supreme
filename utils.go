@@ -11,17 +11,18 @@ import (
 )
 
 // WriteStringToFile writes a string to a file
-func WriteStringToFile(contents string) {
+func WriteStringToFile(filename string, contents string) error {
 	// For more granular writes, open a file for writing.
-	f, err := os.Create("/tmp/dat2")
+	f, err := os.Create("./logs/" + filename)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer f.Close()
 	_, err = f.Write([]byte(contents))
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 // retry should retry any function. Used to retry http requests
@@ -33,12 +34,10 @@ func retry(attempts int, sleep time.Duration, f func(int) error) error {
 		}
 
 		if attempts--; attempts > 0 {
-			// Add some randomness to prevent creating a Thundering Herd
+			// Add some randomness
 			jitter := time.Duration(rand.Int63n(int64(sleep)))
-			sleep = sleep + jitter/2
-
-			time.Sleep(sleep)
-			return retry(attempts, 2*sleep, f)
+			time.Sleep(sleep + jitter/2)
+			return retry(attempts, sleep, f)
 		}
 		return err
 	}
@@ -65,12 +64,11 @@ func setupLogging() *zerolog.Logger {
 	filename := fmt.Sprintf("logs/logfile-%d.log", time.Now().Unix())
 	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err == nil {
-		mw := io.MultiWriter(os.Stdout, f)
+		mw := io.MultiWriter(os.Stderr, f)
 		logger = zerolog.New(mw)
 	} else {
-		logger = zerolog.New(os.Stdout)
+		logger = zerolog.New(os.Stderr)
 	}
-	logger = zerolog.New(os.Stderr)
 
 	return &logger
 }

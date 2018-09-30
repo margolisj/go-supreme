@@ -12,7 +12,7 @@ import (
 	"github.com/levigross/grequests"
 )
 
-// Log is the main logging instance used in this application
+// log is the main logging instance used in this application
 var log = setupLogging()
 
 func main() {

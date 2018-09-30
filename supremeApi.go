@@ -278,8 +278,8 @@ func Checkout(i int, session *grequests.Session, xcsrf string, account *Account)
 	localRo := &grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
-			"accept": "*/*",
-			// "accept-encoding":  "gzip",
+			"accept":           "*/*",
+			"accept-encoding":  "gzip, deflate, br",
 			"accept-language":  "en-US,en;q=0.9",
 			"origin":           "https://www.supremenewyork.com",
 			"referer":          "https://www.supremenewyork.com/checkout",

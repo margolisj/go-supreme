@@ -12,7 +12,6 @@ go build
 
 ## TODO:
 ### Current
-* Figure out how much time jitter adds to retrys, we probably want this kept to a minimum
 * Task Update:
   * Add request object
   * Set task status during everything
@@ -63,6 +62,7 @@ go build
   * Apparent checkout bug, unicode issue when printing out return string - Issue was trying to checkout when wasn't in cart
   * Bug when no size is specified but it is a sized item - Same as first bug listed
 * Replace logging with: https://github.com/rs/zerolog - 9/29
+* Figure out how much time jitter adds to retrys, we probably want this kept to a minimum - 9/29
 
 ## Objectives
 
@@ -84,7 +84,8 @@ go build
 ### Libraries
 * https://godoc.org/github.com/levigross/grequests
 * https://godoc.org/github.com/PuerkitoBio/goquery
-* https://github.com/stretchr/testify
+* https://godoc.org/github.com/stretchr/testify
+* https://godoc.org/github.com/rs/zerolog
 
 ### Code Examples
 * http://polyglot.ninja/golang-making-http-requests/
@@ -95,3 +96,5 @@ go build
 * https://stackoverflow.com/questions/48305425/json-key-can-either-be-a-string-or-an-object
 * https://smartystreets.com/blog/2015/02/go-testing-part-1-vanillla
 * https://medium.com/@gosamv/using-gos-context-library-for-logging-4a8feea26690
+* https://upgear.io/blog/simple-golang-retry-function/
+* https://kaviraj.me/understanding-condition-variable-in-go/
