@@ -19,7 +19,7 @@ type Person struct {
 	PhoneNumber string `json:"phoneNumber"` // Phone numbers must have dashes
 }
 
-// Card is a struct moding a credit card
+// Card is a struct modeling a credit card
 type Card struct {
 	Cardtype string `json:"cardtype"` // Don't think this matters for desktop, also should be able to figure this out without user entry
 	Number   string `json:"number"`   // Card numbers must have spaces "XXXX XXXX XXXX XXXX"
@@ -59,7 +59,7 @@ type taskItem struct {
 // 	password string
 // }
 
-// Task is a checkout acount and an item(s) to checkout
+// Task is a checkout account and an item(s) to checkout
 type Task struct {
 	TaskName string   `json:"taskName"`
 	Item     taskItem `json:"item"`
@@ -90,7 +90,7 @@ func (task *Task) UpdateStatus(status string) {
 	task.status = status
 }
 
-// Log returns the logger assocated with the task
+// Log returns the logger associated with the task
 func (task *Task) Log() *zerolog.Logger {
 	if task.log == nil {
 		tempLogger := log.With().Str("taskID", task.id).Logger()
@@ -106,7 +106,7 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 }
 
 // VerifyTask verifies the information provided in the task to make sure it is
-// what the rest of the applciation expects
+// what the rest of the application expects
 func (task *Task) VerifyTask() (bool, error) {
 	// Phone number
 	phoneMatch, _ := regexp.MatchString(`\d{3}-\d{3}-\d{4}`, task.Account.Person.PhoneNumber)
@@ -219,7 +219,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		atcSuccess, err = AddToCart(session, task, addURL, xcsrf, st, pickedSizeID)
 		return err
 	})
-	task.Log().Debug().Msgf("ATC Reults: %t", atcSuccess)
+	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
 	time.Sleep(800 * time.Millisecond)
 
 	// Checkout

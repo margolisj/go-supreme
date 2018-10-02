@@ -18,10 +18,9 @@ goreleaser --snapshot
 
 ## TODO:
 ### Current
-* Go over with spell check
 * Add map of all categories
 * Settings support for different checkout sleep speeds
-* Add Licnesing and Server Authenticaion
+* Add Licensing and Server Authentication
   * https://keygen.sh/ - Temporary at least
   * https://github.com/hyperboloide/lk - Role my own server
     * https://github.com/denisbrodbeck/machineid  
@@ -31,11 +30,11 @@ goreleaser --snapshot
 
 ### Pipeline
 * https://sequencediagram.org/ Diagram calls
-* Commandline to feed in file different commands
+* Command line to feed in file different commands
   * https://github.com/spf13/cobra
 * Add ability to kill one of these go routines via select statement from either cancel channel or 
 * Restock monitor
-* Unify / pool inital item search
+* Unify / pool initial item search
 * Add mobile API
   * Figure out if mobile can also skip captcha
   * Model an interface for current and former system
@@ -72,12 +71,13 @@ goreleaser --snapshot
   * Apparent checkout bug, unicode issue when printing out return string - Issue was trying to checkout when wasn't in cart
   * Bug when no size is specified but it is a sized item - Same as first bug listed
 * Replace logging with: https://github.com/rs/zerolog - 9/29
-* Figure out how much time jitter adds to retrys, we probably want this kept to a minimum - 9/29
+* Figure out how much time jitter adds to retry, we probably want this kept to a minimum - 9/29
 * Task Update: - 10/2
   * Add and use task Id in logging- 10/2
   * Set task status during everything - 10/2
   * Move checkout make it work off task log instead of with ID int - 10/2
-* Add support to generate multiple bianries - 10/2
+* Add support to generate multiple binaries - 10/2
+* Go over with spell check - 10/2
 
 ## Objectives
 
@@ -88,11 +88,11 @@ goreleaser --snapshot
 * Failed - Massive amount of user error, set up almost all of the item incorrectly
 
 ### 10/6/18
-* Test queueing properly
+* Test queuing properly
 * Run more versions:
   * Find beta testers
   * Run at parents and locally
-  * Test on google cloud
+  * Test on Google cloud
 
 ## Libraries and Code Examples
 

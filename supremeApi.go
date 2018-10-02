@@ -235,7 +235,7 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 	return false, nil
 }
 
-// FindItem finds a task itime in the slice of supreme items
+// FindItem finds a task item in the slice of supreme items
 func findItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error) {
 	for _, supItem := range supremeItems {
 		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
@@ -328,7 +328,7 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 		return false, err
 	}
 
-	// TODO: Is there a response that doesn't queue? If not we can get rid of redundent
+	// TODO: Is there a response that doesn't queue? If not we can get rid of redundant
 	// return false logic below
 	if strings.Contains(respString, "queued") {
 		task.UpdateStatus("Waiting for queue")

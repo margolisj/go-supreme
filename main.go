@@ -39,7 +39,7 @@ func main() {
 
 	log.Info().Msgf("Loaded %d tasks. Waiting to run.", len(tasks))
 
-	// Wait for the comand to start
+	// Wait for the command to start
 	fmt.Print("Press 'Enter' to continue...")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
@@ -63,7 +63,7 @@ func main() {
 
 			innerTask.Log().Info().
 				Bool("success", success).
-				Msg("Checkout compeleted")
+				Msg("Checkout completed")
 
 		}(i, task)
 	}
