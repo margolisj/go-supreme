@@ -49,8 +49,8 @@ type stop struct {
 	error
 }
 
-// setupLogging sets up a zerolog logger to our specifications
-func setupLogging() *zerolog.Logger {
+// setupLogger sets up a zerolog logger to our specifications
+func setupLogger() *zerolog.Logger {
 	// UNIX Time is faster and smaller than most timestamps
 	// If you set zerolog.TimeFieldFormat to an empty string,
 	// logs will write with UNIX time
@@ -64,10 +64,10 @@ func setupLogging() *zerolog.Logger {
 	filename := fmt.Sprintf("logs/logfile-%d.log", time.Now().Unix())
 	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err == nil {
-		mw := io.MultiWriter(os.Stderr, f)
+		mw := io.MultiWriter(zerolog.ConsoleWriter{Out: os.Stderr}, f)
 		logger = zerolog.New(mw)
 	} else {
-		logger = zerolog.New(os.Stderr)
+		logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	return &logger

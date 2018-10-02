@@ -13,13 +13,6 @@ import (
 
 const sharedUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36"
 
-var defaultRo = &grequests.RequestOptions{
-	UserAgent: sharedUserAgent,
-	Headers: map[string]string{
-		"accept-language": "en-US,en;q=0.9",
-	},
-}
-
 //SupremeItem an item found on the supreme webpage
 type SupremeItem struct {
 	name  string
@@ -51,10 +44,19 @@ skate -> https://www.supremenewyork.com/shop/all/skate
 
 // GetCollectionItems Gets the collection items from a specific category. If inStockOnly is true then
 // the function will only return instock items
-func GetCollectionItems(task *Task, inStockOnly bool) (*SupremeItems, error) {
+func GetCollectionItems(task *Task, session *grequests.Session, inStockOnly bool) (*SupremeItems, error) {
+	localRo := grequests.RequestOptions{
+		UserAgent: sharedUserAgent,
+		Headers: map[string]string{
+			"accept-language": "en-US,en;q=0.9",
+			"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+			"accept-encoding": "gzip, deflate, br",
+			"dnt":             "1",
+		},
+	}
 	taskItem := task.Item
 	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.Category
-	resp, err := grequests.Get(collectionURL, defaultRo)
+	resp, err := session.Get(collectionURL, &localRo)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting collection items")
 		return nil, err
@@ -93,10 +95,22 @@ func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *SupremeItems {
 	return &items
 }
 
-// GetSizeInfo Gets st and size options for an item
+// GetSizeInfo Gets st and size options for an item by going to the item page
+// and retrieving the options from it.
+// itemURLStuffix is in the format "/shop/accessories/jdbpyos48/iimyp2ogd"
 func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, SizeResponse, string, string, error) {
+	localRo := grequests.RequestOptions{
+		UserAgent: sharedUserAgent,
+		Headers: map[string]string{
+			"accept-language": "en-US,en;q=0.9",
+			"accept":          "accept: text/html, application/xhtml+xml, application/xml",
+			"accept-encoding": "gzip, deflate, br",
+			"dnt":             "1",
+		},
+	}
+	// Ex. itemURLStuffix = "/shop/accessories/jdbpyos48/iimyp2ogd"
 	itemURL := "https://www.supremenewyork.com" + itemURLSuffix
-	resp, err := grequests.Get(itemURL, defaultRo)
+	resp, err := grequests.Get(itemURL, &localRo)
 	if err != nil {
 		return "", SizeResponse{}, "", "", err
 	}

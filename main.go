@@ -13,7 +13,7 @@ import (
 )
 
 // log is the main logging instance used in this application
-var log = setupLogging()
+var log = setupLogger()
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
