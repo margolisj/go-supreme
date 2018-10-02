@@ -69,6 +69,7 @@ func setupLogger() *zerolog.Logger {
 	} else {
 		logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
+	logger = logger.With().Timestamp().Logger()
 
 	return &logger
 }

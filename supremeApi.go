@@ -20,6 +20,9 @@ type SupremeItem struct {
 	url   string
 }
 
+// checkoutJSON the json response provided after check out.
+// This does not capture all the possible checkout response only
+// the response if we need to queue
 type checkoutJSON struct {
 	Status string `json:"status"`
 	Slug   string `json:"slug"`
@@ -43,7 +46,7 @@ skate -> https://www.supremenewyork.com/shop/all/skate
 */
 
 // GetCollectionItems Gets the collection items from a specific category. If inStockOnly is true then
-// the function will only return instock items
+// the function will only return instock items.
 func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool) (*SupremeItems, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
@@ -82,7 +85,6 @@ func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *SupremeItems {
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
 		// First check sold out status
 		soldOut := s.Find("a .sold_out_tag").Size() != 0
-		log.Debug().Msgf("%d Not soldout", i)
 		if inStockOnly && soldOut { // Ignore soldout items
 			return
 		}
@@ -171,7 +173,6 @@ func parseSizes(doc *goquery.Document) SizeResponse {
 // PickSize picks a size out of the size map
 func PickSize(taskItem *taskItem, sizes SizeResponse) (string, error) {
 	// If the task item is an empty string, task was set up to target no-size item
-	log.Info().Msgf("Taskitem szie: %s", taskItem.Size)
 	if taskItem.Size == "" {
 		if sizes.singleSizeID == "" {
 			return "", errors.New("Unable to pick size, task size and singleSizeId both empty")
