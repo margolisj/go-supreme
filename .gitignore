@@ -2,6 +2,7 @@
 supreme
 /taskFiles
 /logs
+/dist
 
 # VScode
 /.vscode

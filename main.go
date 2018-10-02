@@ -15,7 +15,16 @@ var log = setupLogger()
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	taskFile := "taskFiles/testFileV2.json"
+
+	// Look for task file
+	if len(os.Args) < 2 {
+		log.Panic().Msg("Task File path not specified")
+	}
+	taskFile := os.Args[1]
+	if _, err := os.Stat(taskFile); os.IsNotExist(err) {
+		log.Panic().Msgf("File does not exist at %s", taskFile)
+	}
+
 	log.Info().Msgf("Loading task file: %s", taskFile)
 	tasks, err := ImportTasksFromJSON(taskFile)
 	if err != nil {

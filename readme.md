@@ -10,9 +10,14 @@ go build
 ./supreme
 ~~~~
 
+## Building Versions
+To build different versions you will need to setup goreleaser using brew or some other installer. Then:
+~~~~
+goreleaser --snapshot
+~~~~
+
 ## TODO:
 ### Current
-* Add support to generate multiple bianries
 * Go over with spell check
 * Add map of all categories
 * Settings support for different checkout sleep speeds
@@ -23,7 +28,6 @@ go build
   * https://nucleus.sh/docs/sell - For the entire js application
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
 * Add proxy support
-
 
 ### Pipeline
 * https://sequencediagram.org/ Diagram calls
@@ -73,6 +77,7 @@ go build
   * Add and use task Id in logging- 10/2
   * Set task status during everything - 10/2
   * Move checkout make it work off task log instead of with ID int - 10/2
+* Add support to generate multiple bianries - 10/2
 
 ## Objectives
 
