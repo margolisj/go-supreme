@@ -44,21 +44,21 @@ skate -> https://www.supremenewyork.com/shop/all/skate
 
 // GetCollectionItems Gets the collection items from a specific category. If inStockOnly is true then
 // the function will only return instock items
-func GetCollectionItems(task *Task, session *grequests.Session, inStockOnly bool) (*SupremeItems, error) {
+func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool) (*SupremeItems, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
 			"accept-language": "en-US,en;q=0.9",
 			"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-			"accept-encoding": "gzip, deflate, br",
-			"dnt":             "1",
+			// "accept-encoding": "gzip, deflate, br",
+			"dnt": "1",
 		},
 	}
 	taskItem := task.Item
 	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.Category
 	resp, err := session.Get(collectionURL, &localRo)
 	if err != nil {
-		log.Error().Err(err).Msg("Error getting collection items")
+		task.Log().Error().Err(err)
 		return nil, err
 	}
 	if resp.Ok != true {
@@ -68,11 +68,11 @@ func GetCollectionItems(task *Task, session *grequests.Session, inStockOnly bool
 	// Build goquery doc and find each article
 	doc, err := goquery.NewDocumentFromReader(resp.RawResponse.Body)
 	if err != nil {
-		log.Error().Err(err)
+		task.Log().Error().Err(err)
 		return nil, err
 	}
 	items := parseCategoryPage(doc, inStockOnly)
-	log.Debug().Msgf("Items Found: %d", len(*items))
+	task.Log().Debug().Msgf("Items Found: %d", len(*items))
 
 	return items, nil
 }
@@ -82,6 +82,7 @@ func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *SupremeItems {
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
 		// First check sold out status
 		soldOut := s.Find("a .sold_out_tag").Size() != 0
+		log.Debug().Msgf("%d Not soldout", i)
 		if inStockOnly && soldOut { // Ignore soldout items
 			return
 		}
@@ -98,19 +99,19 @@ func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *SupremeItems {
 // GetSizeInfo Gets st and size options for an item by going to the item page
 // and retrieving the options from it.
 // itemURLStuffix is in the format "/shop/accessories/jdbpyos48/iimyp2ogd"
-func GetSizeInfo(session *grequests.Session, itemURLSuffix string) (string, SizeResponse, string, string, error) {
+func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix string) (string, SizeResponse, string, string, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
 			"accept-language": "en-US,en;q=0.9",
 			"accept":          "accept: text/html, application/xhtml+xml, application/xml",
-			"accept-encoding": "gzip, deflate, br",
-			"dnt":             "1",
+			// "accept-encoding": "gzip, deflate, br",
+			"dnt": "1",
 		},
 	}
 	// Ex. itemURLStuffix = "/shop/accessories/jdbpyos48/iimyp2ogd"
 	itemURL := "https://www.supremenewyork.com" + itemURLSuffix
-	resp, err := grequests.Get(itemURL, &localRo)
+	resp, err := session.Get(itemURL, &localRo)
 	if err != nil {
 		return "", SizeResponse{}, "", "", err
 	}
@@ -168,11 +169,12 @@ func parseSizes(doc *goquery.Document) SizeResponse {
 }
 
 // PickSize picks a size out of the size map
-func PickSize(taskItem taskItem, sizes SizeResponse) (string, error) {
+func PickSize(taskItem *taskItem, sizes SizeResponse) (string, error) {
 	// If the task item is an empty string, task was set up to target no-size item
+	log.Info().Msgf("Taskitem szie: %s", taskItem.Size)
 	if taskItem.Size == "" {
 		if sizes.singleSizeID == "" {
-			return "", errors.New("Unable to pick size")
+			return "", errors.New("Unable to pick size, task size and singleSizeId both empty")
 		}
 		return sizes.singleSizeID, nil
 	}
@@ -186,11 +188,11 @@ func PickSize(taskItem taskItem, sizes SizeResponse) (string, error) {
 		}
 	}
 
-	return "", errors.New("Unable to pick size")
+	return "", errors.New("Unable to pick size, unable to find size in multipleSizes")
 }
 
 // AddToCart adds an item to the cart
-func AddToCart(session *grequests.Session, addURL string, xcsrf string, st string, s string) (bool, error) {
+func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf string, st string, s string) (bool, error) {
 	localRo := &grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
@@ -217,17 +219,17 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 	)
 
 	if err != nil {
-		log.Error().Err(err).Msgf("Error addding to cart")
+		task.Log().Error().Err(err).Msgf("Error addding to cart")
 		return false, err
 	}
 
 	if resp.Ok != true {
-		log.Warn().Msgf("%v", resp.RawResponse.Request)
-		log.Warn().Msgf("%v", resp.RawResponse)
+		task.Log().Warn().Msgf("%v", resp.RawResponse.Request)
+		task.Log().Warn().Msgf("%v", resp.RawResponse)
 		return false, errors.New("ATC Req did not return OK")
 	}
 
-	log.Info().Msg(resp.String())
+	task.Log().Info().Msg(resp.String())
 
 	return false, nil
 }
@@ -236,7 +238,7 @@ func AddToCart(session *grequests.Session, addURL string, xcsrf string, st strin
 func findItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error) {
 	for _, supItem := range supremeItems {
 		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
-			log.Debug().Msgf("Matched %s", supItem)
+			// log.Debug().Msgf("Matched %s", supItem)
 			return supItem, nil
 		}
 	}
@@ -262,8 +264,8 @@ func checkColor(taskItemColor string, supremeItemColor string) bool {
 }
 
 // Checkout Checks out a task. If there is an issue with
-func Checkout(i int, session *grequests.Session, xcsrf string, account *Account) (bool, error) {
-
+func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error) {
+	account := task.Account
 	postData := map[string]string{
 		"utf8":                     "✓",
 		"authenticity_token":       xcsrf,
@@ -308,50 +310,51 @@ func Checkout(i int, session *grequests.Session, xcsrf string, account *Account)
 	resp, err := session.Post("https://www.supremenewyork.com/checkout.json", localRo)
 
 	if err != nil {
-		log.Error().Err(err).Msg("Checkout Error")
+		task.Log().Error().Err(err).Msg("Checkout Error")
 		return false, err
 	}
 
-	log.Debug().Msg("----------------RESPONSE----------------")
+	task.Log().Debug().Msg("----------------RESPONSE----------------")
 	respString := resp.String()
-	log.Debug().Msgf("%d %s", i, respString)
-	log.Debug().Msgf("%d %v", i, resp.RawResponse)
+	task.Log().Debug().Msgf("%s", respString)
+	task.Log().Debug().Msgf("%v", resp.RawResponse)
 
-	log.Debug().Msgf("----------------REQUEST----------------")
-	log.Debug().Msgf("%d %v", i, resp.RawResponse.Request)
+	task.Log().Debug().Msgf("----------------REQUEST----------------")
+	task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
 
 	if resp.Ok != true {
-		log.Warn().Msgf("%d Checkout request did not return OK", i)
+		task.Log().Warn().Msgf("Checkout request did not return OK")
 		return false, err
 	}
 
 	// TODO: Is there a response that doesn't queue? If not we can get rid of redundent
 	// return false logic below
 	if strings.Contains(respString, "queued") {
-		return queue(i, session, respString)
+		task.UpdateStatus("Waiting for queue")
+		return queue(task, session, respString)
 	} else if strings.Contains(respString, "failed") {
-		// log.WithFields(log.Fields{
-		// 	"reason":   "failed",
-		// 	"response": respString,
-		// }).Error("Checkout failed")
+		task.Log().Error().
+			Str("reason", "failed").
+			Str("response", respString).
+			Msg("Queue failed")
 		return false, nil
 	} else if strings.Contains(respString, "outOfStock") {
-		// log.WithFields(log.Fields{
-		// 	"reason":   "outOfStock",
-		// 	"response": respString,
-		// }).Error("Checkout failed")
+		task.Log().Error().
+			Str("reason", "outOfStock").
+			Str("response", respString).
+			Msg("checkout failed")
 		return false, nil
 	}
 
 	return true, nil
 }
 
-func queue(i int, session *grequests.Session, respString string) (bool, error) {
+func queue(task *Task, session *grequests.Session, respString string) (bool, error) {
 	var queueJSON checkoutJSON
 	if err := json.Unmarshal([]byte(respString), &queueJSON); err != nil {
-		// log.WithFields(log.Fields{
-		// "response": respString,
-		// }).Error("Unable to marshall json")
+		task.Log().Error().
+			Str("response", respString).
+			Msg("Unable to marshall json in queue")
 		return false, nil
 	}
 
@@ -371,36 +374,33 @@ func queue(i int, session *grequests.Session, respString string) (bool, error) {
 
 	resp, err := session.Get(fmt.Sprintf("https://www.supremenewyork.com/checkout/%s/status.json", queueJSON.Slug), localRo)
 	if err != nil {
-		log.Error().Err(err).Msgf("%d Queue Error: ", i)
+		task.Log().Error().Err(err).Msg("Queue error on update")
 		return false, err
 	}
 
 	if resp.Ok != true {
-		log.Warn().Msg("Queue did not return OK")
-		log.Debug().Msgf("%d %v", i, resp.RawResponse.Request)
-		log.Debug().Msgf("%d %v", i, resp.RawResponse)
+		task.Log().Warn().Msg("Queue did not return OK")
+		task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
+		task.Log().Debug().Msgf("%v", resp.RawResponse)
 		return false, errors.New("Queue did not return OK")
 	}
 
 	if strings.Contains(respString, "queued") {
-		return queue(i, session, resp.String())
+		return queue(task, session, resp.String())
 	} else if strings.Contains(respString, "failed") {
-		// log.WithFields(log.Fields{
-		// 	"reason":   "failed",
-		// 	"response": respString,
-		// }).Error("Queue failed")
+		task.Log().Error().
+			Str("reason", "failed").
+			Str("response", respString).
+			Msg("Queue failed")
 		return false, nil
 	} else if strings.Contains(respString, "outOfStock") {
-		// log.WithFields(log.Fields{
-		// 	"reason":   "outOfStock",
-		// 	"response": respString,
-		// }).Error("Queue failed")
+		task.Log().Error().
+			Str("reason", "outOfStock").
+			Str("response", respString).
+			Msg("Queue failed")
 		return false, nil
 	}
 
-	// log.WithFields(log.Fields{
-	// 	"respString": respString,??
-	// }).Info("Queue successful")
-
+	task.Log().Info().Msg("Queue successful")
 	return true, nil
 }

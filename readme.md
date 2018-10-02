@@ -12,20 +12,25 @@ go build
 
 ## TODO:
 ### Current
-* Task Update:
-  * Add request object
-  * Set task status during everything
-  * Move checkout make it work off task
+* Add support to generate multiple bianries
+* Go over with spell check
+* Add map of all categories
+* Settings support for different checkout sleep speeds
+* Add Licnesing and Server Authenticaion
+  * https://keygen.sh/ - Temporary at least
+  * https://github.com/hyperboloide/lk - Role my own server
+    * https://github.com/denisbrodbeck/machineid  
+  * https://nucleus.sh/docs/sell - For the entire js application
+  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
 * Add proxy support
-* Commandline to feed in file different commands
-  * https://github.com/spf13/cobra
+
 
 ### Pipeline
-* Add authentication
-  * https://github.com/denisbrodbeck/machineid  
 * https://sequencediagram.org/ Diagram calls
+* Commandline to feed in file different commands
+  * https://github.com/spf13/cobra
+* Add ability to kill one of these go routines via select statement from either cancel channel or 
 * Restock monitor
-* Utilize default ro in api better
 * Unify / pool inital item search
 * Add mobile API
   * Figure out if mobile can also skip captcha
@@ -33,6 +38,7 @@ go build
 * Add gcapture code in case they revert
 * UI
   * make GUI to keep track of status
+  * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
   * https://github.com/gizak/termui
   * https://github.com/jroimartin/gocui
   * https://github.com/gdamore/tcell
@@ -63,6 +69,10 @@ go build
   * Bug when no size is specified but it is a sized item - Same as first bug listed
 * Replace logging with: https://github.com/rs/zerolog - 9/29
 * Figure out how much time jitter adds to retrys, we probably want this kept to a minimum - 9/29
+* Task Update: - 10/2
+  * Add and use task Id in logging- 10/2
+  * Set task status during everything - 10/2
+  * Move checkout make it work off task log instead of with ID int - 10/2
 
 ## Objectives
 

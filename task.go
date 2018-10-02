@@ -5,6 +5,10 @@ import (
 	"errors"
 	"io/ioutil"
 	"regexp"
+	"time"
+
+	"github.com/levigross/grequests"
+	"github.com/rs/zerolog"
 )
 
 // Person is a struct modeling personal information
@@ -48,21 +52,22 @@ type taskItem struct {
 	Color    string   `json:"color"`
 }
 
-type proxy struct {
-	ip       string
-	port     string
-	username string
-	password string
-}
+// type proxy struct {
+// 	ip       string
+// 	port     string
+// 	username string
+// 	password string
+// }
 
 // Task is a checkout acount and an item(s) to checkout
 type Task struct {
-	TaskName string `json:"taskName"`
+	TaskName string   `json:"taskName"`
+	Item     taskItem `json:"item"`
+	Account  Account  `json:"account"`
 	// proxy    proxy
-	Item taskItem `json:"item"`
-	// Success bool
-	// status  string
-	Account Account `json:"account"`
+	status string
+	id     string
+	log    *zerolog.Logger
 }
 
 // ImportTasksFromJSON imports a list of tasks from a json file
@@ -78,6 +83,26 @@ func ImportTasksFromJSON(filename string) ([]Task, error) {
 	}
 
 	return tasks, nil
+}
+
+// UpdateStatus sets the task status to the status provided
+func (task *Task) UpdateStatus(status string) {
+	task.status = status
+}
+
+// Log returns the logger assocated with the task
+func (task *Task) Log() *zerolog.Logger {
+	if task.log == nil {
+		tempLogger := log.With().Str("taskID", task.id).Logger()
+		task.log = &tempLogger
+		return task.log
+	}
+	return task.log
+}
+
+// SetLog sets the task's logger
+func (task *Task) SetLog(newLogger *zerolog.Logger) {
+	task.log = newLogger
 }
 
 // VerifyTask verifies the information provided in the task to make sure it is
@@ -139,4 +164,99 @@ func VerifyTasks(tasks *[]Task) (bool, map[int]error) {
 		return false, taskErrors
 	}
 	return true, nil
+}
+
+// SupremeCheckout attempts to add to cart, waiting until it is available, and item and then check it out
+func (task *Task) SupremeCheckout() (bool, error) {
+	var matchedItem SupremeItem // The item on the supreme site we will buy
+	var err error
+	session := grequests.NewSession(nil)
+
+	// Try to find the item provided in keywords etc
+	task.UpdateStatus("Looking for item")
+	for {
+		// Get items in category
+		matchedItem, err = waitForItemMatch(session, task)
+		if err != nil {
+			task.Log().Error().Err(err).Msgf("Error getting collection, sleeping.")
+		} else {
+			break
+		}
+		time.Sleep(300 * time.Millisecond)
+	}
+	task.Log().Debug().Msgf("Found item %+v %s %s %s", matchedItem, matchedItem.color, matchedItem.name, matchedItem.url)
+
+	// Get the ATC info from the item page
+	var st string
+	var sizeResponse SizeResponse
+	var addURL string
+	var xcsrf string
+	task.UpdateStatus("Going to item page")
+	err = retry(10, 50*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
+		var err error
+		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, task, matchedItem.url)
+		return err
+	})
+	if err != nil {
+		task.Log().Error().Err(err)
+		return false, err
+	}
+	task.Log().Debug().Msgf("%s %+v %s %s", st, sizeResponse, addURL, xcsrf)
+	time.Sleep(800 * time.Millisecond)
+
+	// Add the item to cart
+	task.UpdateStatus("Adding item to cart")
+	pickedSizeID, err := PickSize(&task.Item, sizeResponse)
+	if err != nil {
+		task.Log().Error().Err(err).Msgf("Unable to pick size")
+		return false, err
+	}
+	var atcSuccess bool
+	err = retry(10, 50*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
+		var err error
+		atcSuccess, err = AddToCart(session, task, addURL, xcsrf, st, pickedSizeID)
+		return err
+	})
+	task.Log().Debug().Msgf("ATC Reults: %t", atcSuccess)
+	time.Sleep(800 * time.Millisecond)
+
+	// Checkout
+	task.UpdateStatus("Checking out")
+	task.Log().Debug().Msgf("Checking out using data %s", task.Account)
+	var checkoutSuccess bool
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
+		var err error
+		checkoutSuccess, err = Checkout(session, task, xcsrf)
+		return err
+	})
+	task.Log().Debug().Msgf("Checkout: %t", checkoutSuccess)
+	if checkoutSuccess {
+		task.UpdateStatus("Checked out successfully")
+	} else {
+		task.UpdateStatus("Checkout failed")
+	}
+
+	return checkoutSuccess, nil
+}
+
+// waitForItemMatch is a helper function for checkout. It waits until we find an item in the collection.
+func waitForItemMatch(session *grequests.Session, task *Task) (SupremeItem, error) {
+	supremeItems, err := GetCollectionItems(session, task, true)
+	if err != nil {
+		return SupremeItem{}, errors.New("Error getting collection items")
+	}
+
+	if len(*supremeItems) > 0 {
+		task.Log().Debug().Msgf("Found %d items", len(*supremeItems))
+		matchedItem, err := findItem(task.Item, *supremeItems)
+		if err != nil {
+			return SupremeItem{}, errors.New("Items in collection but unable to find items")
+		}
+		return matchedItem, nil
+	}
+
+	return SupremeItem{}, errors.New("No matches found in collection")
 }
