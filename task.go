@@ -182,7 +182,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		} else {
 			break
 		}
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
 	}
 	task.Log().Debug().Msgf("Found item %+v %s %s %s", matchedItem, matchedItem.color, matchedItem.name, matchedItem.url)
 
@@ -203,7 +203,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		return false, err
 	}
 	task.Log().Debug().Msgf("%s %+v %s %s", st, sizeResponse, addURL, xcsrf)
-	time.Sleep(800 * time.Millisecond)
+	time.Sleep(time.Duration(appSettings.AtcWait) * time.Millisecond)
 
 	// Add the item to cart
 	task.UpdateStatus("Adding item to cart")
@@ -220,7 +220,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		return err
 	})
 	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
-	time.Sleep(800 * time.Millisecond)
+	time.Sleep(time.Duration(appSettings.CheckoutWait) * time.Millisecond)
 
 	// Checkout
 	task.UpdateStatus("Checking out")

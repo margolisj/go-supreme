@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"strconv"
@@ -13,9 +15,20 @@ import (
 // log is the main logging instance used in this application
 var log = setupLogger()
 
-func main() {
-	rand.Seed(time.Now().UnixNano())
+type applicationSettings struct {
+	RefreshWait  int `json:"refreshWait"`
+	AtcWait      int `json:"atcWait"`
+	CheckoutWait int `json:"checkoutWait"`
+}
 
+// appSettings are the default application settings
+var appSettings = applicationSettings{
+	300,
+	800,
+	800,
+}
+
+func checkCommandLine() string {
 	// Look for task file
 	if len(os.Args) < 2 {
 		log.Panic().Msg("Task File path not specified")
@@ -25,6 +38,30 @@ func main() {
 		log.Panic().Msgf("File does not exist at %s", taskFile)
 	}
 
+	if len(os.Args) > 2 {
+		applicationSettingsFile := os.Args[2]
+		fileBytes, err := ioutil.ReadFile(applicationSettingsFile)
+		if err != nil {
+			log.Error().Msgf("Unable to find applicationSettingsFile %s", applicationSettingsFile)
+		}
+
+		var settings applicationSettings
+		if err := json.Unmarshal(fileBytes, &settings); err != nil {
+			log.Error().Msgf("Unable to marshal applicationSettingsFile %s", applicationSettingsFile)
+		}
+		appSettings = settings
+		log.Info().Msgf("Updated application settings %v", appSettings)
+	} else {
+		log.Info().Msg("Was not provided other application settings")
+	}
+
+	return taskFile
+}
+
+func main() {
+	rand.Seed(time.Now().UnixNano())
+
+	taskFile := checkCommandLine()
 	log.Info().Msgf("Loading task file: %s", taskFile)
 	tasks, err := ImportTasksFromJSON(taskFile)
 	if err != nil {

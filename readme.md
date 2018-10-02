@@ -2,12 +2,11 @@
 Buys some supreme stuff
 
 ## Getting Started
-1. Make sure you have a task file somewhere and its being pointed at in code.
+1. Make sure you have a task file somewhere to use on the command line.
 2. Build and go. Pretty easy.
 ~~~~
-export GO111MODULE=on
 go build
-./supreme
+./supreme ./pathto/tasks.json ./optionalSettings/path.json
 ~~~~
 
 ## Building Versions
@@ -19,7 +18,6 @@ goreleaser --snapshot
 ## TODO:
 ### Current
 * Add map of all categories
-* Settings support for different checkout sleep speeds
 * Add Licensing and Server Authentication
   * https://keygen.sh/ - Temporary at least
   * https://github.com/hyperboloide/lk - Role my own server
@@ -78,6 +76,7 @@ goreleaser --snapshot
   * Move checkout make it work off task log instead of with ID int - 10/2
 * Add support to generate multiple binaries - 10/2
 * Go over with spell check - 10/2
+* Settings support for different checkout sleep speeds via settings file - 10/2
 
 ## Objectives
 
