@@ -202,7 +202,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		task.Log().Error().Err(err)
 		return false, err
 	}
-	task.Log().Debug().Msgf("%s %+v %s %s", st, sizeResponse, addURL, xcsrf)
+	task.Log().Debug().Msgf("%s (%s:%+v) %s %s", st, sizeResponse.singleSizeID, sizeResponse.multipleSizes, addURL, xcsrf)
 	time.Sleep(time.Duration(appSettings.AtcWait) * time.Millisecond)
 
 	// Add the item to cart

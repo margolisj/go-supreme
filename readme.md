@@ -86,7 +86,7 @@ goreleaser --snapshot
 ### 9/27/18
 * Failed - Massive amount of user error, set up almost all of the item incorrectly
 
-### 10/6/18
+### 10/4/18
 * Test queuing properly
 * Run more versions:
   * Find beta testers
@@ -100,6 +100,7 @@ goreleaser --snapshot
 * https://godoc.org/github.com/PuerkitoBio/goquery
 * https://godoc.org/github.com/stretchr/testify
 * https://godoc.org/github.com/rs/zerolog
+* https://github.com/goreleaser/goreleaser
 
 ### Code Examples
 * http://polyglot.ninja/golang-making-http-requests/
@@ -112,3 +113,4 @@ goreleaser --snapshot
 * https://medium.com/@gosamv/using-gos-context-library-for-logging-4a8feea26690
 * https://upgear.io/blog/simple-golang-retry-function/
 * https://kaviraj.me/understanding-condition-variable-in-go/
+* https://github.com/golang/go/wiki/WindowsCrossCompiling

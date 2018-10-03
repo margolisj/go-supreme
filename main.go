@@ -74,6 +74,7 @@ func main() {
 		log.Fatal().Msgf("%+v", errs)
 	}
 
+	log.Info().Msgf("Running with settings %v", appSettings)
 	log.Info().Msgf("Loaded %d tasks. Waiting to run.", len(tasks))
 
 	// Wait for the command to start
