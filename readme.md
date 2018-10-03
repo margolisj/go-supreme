@@ -1,13 +1,64 @@
 # Go_Supreme
-Buys some supreme stuff
+Buys some supreme stuff.
 
 ## Getting Started
 1. Make sure you have a task file somewhere to use on the command line.
 2. Build and go. Pretty easy.
 ~~~~
 go build
-./supreme ./pathto/tasks.json ./optionalSettings/path.json
+./supreme ./pathto/tasks.json ./optionalFilePath/Settings.json
 ~~~~
+
+### Task Setup
+The task file is plain json.
+```
+[
+  {
+    "taskName": "shopsafe 0 0RU3",
+    "item": {
+      "keywords": [
+        "Briefs",
+        "Boxer"
+      ],
+      "size": "medium",
+      "color": "white",
+      "category": "accessories"
+    },
+    "account": {
+      "person": {
+        "firstname": "Jax",
+        "lastname": "Blax",
+        "email": "none+0RU3@gmail.com",
+        "phoneNumber": "354-143-9568"
+      },
+      "address": {
+        "address1": "0RU3 123 HoneySuckle Ave",
+        "address2": "",
+        "zipcode": "85542",
+        "city": "Springfield",
+        "state": "WA",
+        "country": "USA"
+      },
+      "card": {
+        "cardtype": "notneeded",
+        "number": "1234 2541 2154 5487",
+        "month": "09",
+        "year": "2022",
+        "cvv": "789"
+      }
+    }
+  },
+]
+```
+
+### Settings Setup
+```
+{
+  "refreshWait": 300,
+  "atcWait": 800,
+  "checkoutWait": 800
+}
+```
 
 ## Building Versions
 To build different versions you will need to setup goreleaser using brew or some other installer. Then:

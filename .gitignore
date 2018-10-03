@@ -3,6 +3,8 @@ supreme
 /taskFiles
 /logs
 /dist
+key.json
+/tools/beta_keys.txt
 
 # VScode
 /.vscode

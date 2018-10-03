@@ -10,21 +10,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// WriteStringToFile writes a string to a file
-func WriteStringToFile(filename string, contents string) error {
-	// For more granular writes, open a file for writing.
-	f, err := os.Create("./logs/" + filename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = f.Write([]byte(contents))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // retry should retry any function. Used to retry http requests
 func retry(attempts int, sleep time.Duration, f func(int) error) error {
 	if err := f(attempts); err != nil {

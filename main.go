@@ -10,10 +10,19 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog"
+)
+
+// Versioning for keygen.sh
+const (
+	account string = "e99bd6f7-900f-4bed-a440-f445fc572fc6"
+	product string = "a7e001f3-3194-4927-88eb-dd37366ab8ed"
+	version string = "0.0.1"
 )
 
 // log is the main logging instance used in this application
-var log = setupLogger()
+var log *zerolog.Logger
 
 type applicationSettings struct {
 	RefreshWait  int `json:"refreshWait"`
@@ -61,6 +70,15 @@ func checkCommandLine() string {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
+	log = setupLogger()
+
+	// Validation
+	keyIsValid := validateApplication()
+	if !keyIsValid {
+		log.Info().Msg("Key is invalid")
+		os.Exit(1)
+	}
+
 	taskFile := checkCommandLine()
 	log.Info().Msgf("Loading task file: %s", taskFile)
 	tasks, err := ImportTasksFromJSON(taskFile)
@@ -74,7 +92,7 @@ func main() {
 		log.Fatal().Msgf("%+v", errs)
 	}
 
-	log.Info().Msgf("Running with settings %v", appSettings)
+	log.Info().Msgf("Running with settings %+v", appSettings)
 	log.Info().Msgf("Loaded %d tasks. Waiting to run.", len(tasks))
 
 	// Wait for the command to start
