@@ -218,10 +218,9 @@ func TestDesktopCheckoutResponsesUnmarshall(t *testing.T) {
 	assert.Equal(t, "queued", res.Status)
 	assert.Equal(t, "q7j84cuad93wnyrg0", res.Slug)
 
-	// failedCreditCard := []byte(`{"status":"failed","cart":[{"size_id":"59765","in_stock":true}],"errors":{"order":"","credit_card":"number is not a valid credit card number"}}`)
-	// if err = json.Unmarshal(failedCreditCard, &res); err != nil {
-	// 	t.Error(err)
-	// }
-	// assert.Equal(t, "failed", res.Status)
-	// assert.Equal(t, `{"order":"","credit_card":"number is not a valid credit card number"}`, res.Errors)
+	// Currently the checkout JSON is pretty useless because supreme doesn't follow a real protocal
+	failedCreditCard := []byte(`{"status":"failed","cart":[{"size_id":"59765","in_stock":true}],"errors":{"order":"","credit_card":"number is not a valid credit card number"}}`)
+	if err = json.Unmarshal(failedCreditCard, &res); err != nil {
+		assert.Error(t, err)
+	}
 }

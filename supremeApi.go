@@ -331,35 +331,46 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 	// TODO: Is there a response that doesn't queue? If not we can get rid of redundant
 	// return false logic below
 	if strings.Contains(respString, "queued") {
+		task.Log().Info().Msg("Queuing.")
 		task.UpdateStatus("Waiting for queue")
-		return queue(task, session, respString)
+		queueSuccess, err := queue(task, session, respString)
+		return queueSuccess, err
 	} else if strings.Contains(respString, "failed") {
 		task.Log().Error().
 			Str("reason", "failed").
 			Str("response", respString).
-			Msg("Queue failed")
+			Msg("Queue failed.")
 		return false, nil
 	} else if strings.Contains(respString, "outOfStock") {
 		task.Log().Error().
 			Str("reason", "outOfStock").
 			Str("response", respString).
-			Msg("checkout failed")
+			Msg("Checkout failed.")
+		return false, nil
+	} else if strings.Contains(respString, "status\":\"dup") {
+		task.Log().Error().
+			Str("reason", "dup").
+			Str("response", respString).
+			Msg("Checkout failed.")
 		return false, nil
 	}
 
 	return true, nil
 }
 
-func queue(task *Task, session *grequests.Session, respString string) (bool, error) {
+func queue(task *Task, session *grequests.Session, originalRespString string) (bool, error) {
 	var queueJSON checkoutJSON
-	if err := json.Unmarshal([]byte(respString), &queueJSON); err != nil {
+	if err := json.Unmarshal([]byte(originalRespString), &queueJSON); err != nil {
 		task.Log().Error().
-			Str("response", respString).
+			Str("response", originalRespString).
 			Msg("Unable to marshall json in queue")
 		return false, nil
 	}
 
-	time.Sleep(10000)
+	task.Log().Debug().Msgf("%+v", queueJSON)
+
+	task.Log().Info().Msg("Sleeping 10 seconds in queue")
+	time.Sleep(10 * time.Second)
 
 	localRo := &grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
@@ -386,8 +397,13 @@ func queue(task *Task, session *grequests.Session, respString string) (bool, err
 		return false, errors.New("Queue did not return OK")
 	}
 
+	respString := resp.String()
+
 	if strings.Contains(respString, "queued") {
-		return queue(task, session, resp.String())
+		task.Log().Debug().
+			Str("response", respString).
+			Msg("Queuing again")
+		return queue(task, session, respString)
 	} else if strings.Contains(respString, "failed") {
 		task.Log().Error().
 			Str("reason", "failed").

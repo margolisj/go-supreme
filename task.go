@@ -185,6 +185,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
 	}
 	task.Log().Debug().Msgf("Found item %+v %s %s %s", matchedItem, matchedItem.color, matchedItem.name, matchedItem.url)
+	startTime := time.Now()
 
 	// Get the ATC info from the item page
 	var st string
@@ -232,7 +233,11 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		checkoutSuccess, err = Checkout(session, task, xcsrf)
 		return err
 	})
-	task.Log().Debug().Msgf("Checkout: %t", checkoutSuccess)
+	elapsed := time.Since(startTime)
+	task.Log().Debug().
+		Bool("success", checkoutSuccess).
+		Float64("timeElapsed", elapsed.Seconds()).
+		Msgf("Checkout completed")
 	if checkoutSuccess {
 		task.UpdateStatus("Checked out successfully")
 	} else {
