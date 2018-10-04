@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -248,8 +249,45 @@ type checkoutJSON struct {
 	Errors string `json:"errors"`
 }
 
+// GetStoreCredits gets the id
+func GetStoreCredits(session *grequests.Session, task *Task) (string, error) {
+	localRo := &grequests.RequestOptions{
+		UserAgent: sharedUserAgent,
+		Headers: map[string]string{
+			"accept": "*/*",
+			// "accept-encoding":  "gzip, deflate, br",
+			"accept-language": "en-US,en;q=0.9",
+			"origin":          "https://www.supremenewyork.com",
+			"referer":         "https://www.supremenewyork.com/checkout",
+			// "x-csrf-token":     xcsrf,
+			"x-requested-with": "XMLHttpRequest",
+			"content-type":     "application/x-www-form-urlencoded; charset=UTF-8",
+			"dnt":              "1",
+		},
+		Params: map[string]string{"email": task.Account.Person.Email},
+	}
+	resp, err := session.Get("https://www.supremenewyork.com/store_credits/verify", localRo)
+
+	if err != nil {
+		task.Log().Error().Err(err).Msg("GetStoreCredits Error")
+		return "", err
+	}
+
+	if resp.Ok != true {
+		task.Log().Warn().Msgf("GetStoreCredits request did not return OK")
+		return "", err
+	}
+	respString := resp.String()
+	re := regexp.MustCompile(`store_credit_id="(?P<id>\d*)"`)
+	findResults := re.FindAllStringSubmatch(respString, -1)
+
+	storeCreditID := findResults[0][1]
+
+	return storeCreditID, nil
+}
+
 // Checkout Checks out a task. If there is an issue with
-func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error) {
+func Checkout(session *grequests.Session, task *Task, xcsrf string, storeCreditID string) (bool, error) {
 	account := task.Account
 	postData := map[string]string{
 		"utf8":                     "✓",
@@ -265,7 +303,7 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 		"order[billing_country]":   account.Address.Country,
 		"asec":                     "Rmasn",
 		"same_as_billing_address":  "1",
-		"store_credit_id":          "",
+		"store_credit_id":          storeCreditID,
 		"store_address":            "1",
 		"credit_card[nlb]":         account.Card.Number,
 		"credit_card[month]":       account.Card.Month,

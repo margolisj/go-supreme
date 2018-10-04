@@ -199,6 +199,15 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 		Str("item", fmt.Sprintf("%+v", task.Item)).
 		Msg("Checking out item")
 
+	task.Log().Info().Msg("Getting store credit")
+	storeCreditID, err := GetStoreCredits(session, task)
+	if err != nil {
+		task.Log().Error().Err(err).Msg("Failed to get store credit")
+		storeCreditID = ""
+	} else {
+		task.Log().Debug().Msgf("Store Credit ID: %s", storeCreditID)
+	}
+
 	// Try to find the item provided in keywords etc
 	task.UpdateStatus("Looking for item")
 	for {
@@ -263,7 +272,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
 		var err error
-		checkoutSuccess, err = Checkout(session, task, xcsrf)
+		checkoutSuccess, err = Checkout(session, task, xcsrf, storeCreditID)
 		return err
 	})
 	elapsed := time.Since(startTime)
