@@ -254,7 +254,6 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 func findItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error) {
 	for _, supItem := range supremeItems {
 		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
-			// log.Debug().Msgf("Matched %s", supItem)
 			return supItem, nil
 		}
 	}

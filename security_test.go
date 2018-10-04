@@ -7,6 +7,7 @@ import (
 )
 
 func TestValidKey(t *testing.T) {
+	// Tester licnese
 	validation := validateLicenseKey("1234-1234-1234-1234")
 	assert.True(t, validation.Valid)
 }

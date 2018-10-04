@@ -64,6 +64,38 @@ func TestFindSingleItemFromPageSource(t *testing.T) {
 	}, foundItem)
 }
 
+func TestFindSingleItemFromPageSource2(t *testing.T) {
+	f, err := os.Open("./testData/supremeSite/10-4-18-sweatshirts.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	supremeItems := parseCategoryPage(doc, false)
+
+	taskItem := taskItem{
+		[]string{""},
+		"sweatshirts",
+		"xlarge",
+		"royal",
+	}
+
+	foundItem, err := findItem(taskItem, *supremeItems)
+
+	if err != nil {
+		t.Fail()
+	}
+	assert.Equal(t, SupremeItem{
+		name:  "Cat in the Hat Hooded Sweatshirt",
+		color: "Bright Royal",
+		url:   "/shop/sweatshirts/sym03qn9v/cshfnxl84",
+	}, foundItem)
+}
+
 func TestParseCategoryPage(t *testing.T) {
 	f, err := os.Open("./testData/supremeSite/9-25-18-jackets.html")
 	if err != nil {

@@ -66,6 +66,11 @@ To build different versions you will need to setup goreleaser using brew or some
 goreleaser --snapshot
 ~~~~
 
+### Build Windows Only
+```
+GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
+```
+
 ## TODO:
 ### Current
 * Review security code
