@@ -20,6 +20,9 @@ type SupremeItem struct {
 	url   string
 }
 
+// SupremeItems a slice of supreme items
+type SupremeItems []SupremeItem
+
 // checkoutJSON the json response provided after check out.
 // This does not capture all the possible checkout response only
 // the response if we need to queue
@@ -28,9 +31,6 @@ type checkoutJSON struct {
 	Slug   string `json:"slug"`
 	Errors string `json:"errors"`
 }
-
-// SupremeItems a slice of supreme items
-type SupremeItems []SupremeItem
 
 /* These are the collection "names" -> actual urls
 jackets -> https://www.supremenewyork.com/shop/all/jackets
@@ -45,6 +45,21 @@ accessories -> https://www.supremenewyork.com/shop/all/accessories
 skate -> https://www.supremenewyork.com/shop/all/skate
 */
 
+var supremeCategories = map[string]string{
+	"jackets":       "jackets",
+	"shirts":        "shirts",
+	"tops/sweaters": "tops_sweaters",
+	"sweatshirts":   "sweatshirts",
+	"pants":         "pants",
+	"t-shirts":      "t-shirts",
+	"hats":          "hats",
+	"bags":          "bags",
+	"shorts":        "shorts",
+	"accessories":   "accessories",
+	"skate":         "skate",
+	"shoes":         "shoes",
+}
+
 // GetCollectionItems Gets the collection items from a specific category. If inStockOnly is true then
 // the function will only return instock items.
 func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool) (*SupremeItems, error) {
@@ -58,7 +73,7 @@ func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool
 		},
 	}
 	taskItem := task.Item
-	collectionURL := "https://www.supremenewyork.com/shop/all/" + taskItem.Category
+	collectionURL := "https://www.supremenewyork.com/shop/all/" + supremeCategories[taskItem.Category]
 	resp, err := session.Get(collectionURL, &localRo)
 	if err != nil {
 		task.Log().Error().Err(err)

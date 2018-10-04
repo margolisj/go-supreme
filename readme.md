@@ -47,7 +47,7 @@ The task file is plain json.
         "cvv": "789"
       }
     }
-  },
+  }
 ]
 ```
 
@@ -68,32 +68,31 @@ goreleaser --snapshot
 
 ## TODO:
 ### Current
-* Add map of all categories
-* Add Licensing and Server Authentication
-  * https://keygen.sh/ - Temporary at least
-  * https://github.com/hyperboloide/lk - Role my own server
-    * https://github.com/denisbrodbeck/machineid  
-  * https://nucleus.sh/docs/sell - For the entire js application
-  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+* Review security code
+  * Add key versioning
 * Add proxy support
-
-### Pipeline
-* https://sequencediagram.org/ Diagram calls
-* Command line to feed in file different commands
-  * https://github.com/spf13/cobra
-* Add ability to kill one of these go routines via select statement from either cancel channel or 
-* Restock monitor
 * Unify / pool initial item search
 * Add mobile API
   * Figure out if mobile can also skip captcha
-  * Model an interface for current and former system
-* Add gcapture code in case they revert
-* UI
-  * make GUI to keep track of status
-  * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
+  * Model an interface for mobile and desktop
+* https://sequencediagram.org/ Diagram calls
+* UI Text
   * https://github.com/gizak/termui
   * https://github.com/jroimartin/gocui
   * https://github.com/gdamore/tcell
+
+### Pipeline
+* UI Version
+  * Add ability to kill one of these go routines via select statement from either cancel channel
+      * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
+  * Add gcapture code in case they revert
+* Command line to feed in file different commands
+  * https://github.com/spf13/cobra
+* Restock monitor
+* Increased security
+  * https://nucleus.sh/docs/sell - For the entire js application
+  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+
 
 ### Completed
 * Finish API - 9/19
@@ -128,6 +127,9 @@ goreleaser --snapshot
 * Add support to generate multiple binaries - 10/2
 * Go over with spell check - 10/2
 * Settings support for different checkout sleep speeds via settings file - 10/2
+* Add Licensing and Server Authentication - 10/3
+* Add map of all categories
+
 
 ## Objectives
 

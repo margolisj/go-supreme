@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"regexp"
 	"time"
@@ -108,6 +109,11 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 // VerifyTask verifies the information provided in the task to make sure it is
 // what the rest of the application expects
 func (task *Task) VerifyTask() (bool, error) {
+	// Task cateogry
+	if val, ok := supremeCategories[task.Item.Category]; !ok {
+		return false, fmt.Errorf("Task category %s not found", val)
+	}
+
 	// Phone number
 	phoneMatch, _ := regexp.MatchString(`\d{3}-\d{3}-\d{4}`, task.Account.Person.PhoneNumber)
 	if !phoneMatch || len(task.Account.Person.PhoneNumber) != 12 {
@@ -178,7 +184,8 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		// Get items in category
 		matchedItem, err = waitForItemMatch(session, task)
 		if err != nil {
-			task.Log().Error().Err(err).Msgf("Error getting collection, sleeping.")
+			task.Log().Error().Err(err).
+				Msgf("Error getting collection, sleeping.")
 		} else {
 			break
 		}

@@ -39,7 +39,7 @@ func testAccount() Account {
 func testTask() Task {
 	item := taskItem{
 		[]string{"shaolin"},
-		"hats",
+		"shirts",
 		"",
 		"orange",
 	}

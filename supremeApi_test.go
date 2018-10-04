@@ -135,6 +135,48 @@ func TestParseSizesMultipleSizes(t *testing.T) {
 	}, *sizeResponse.multipleSizes)
 }
 
+func TestParseSizesMultipleSizesPickSizes(t *testing.T) {
+	f, err := os.Open("./testData/supremeSite/10-3-18-whiteTagless.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	sizeResponse := parseSizes(doc)
+	assert.Equal(t, "", sizeResponse.singleSizeID)
+	assert.Equal(t, map[string]string{
+		"Small":  "59754",
+		"Medium": "59755",
+		"Large":  "59756",
+		"XLarge": "59757",
+	}, *sizeResponse.multipleSizes)
+
+	pickTests := []struct {
+		name string
+		in   taskItem
+		out  string
+	}{
+		{"small", taskItem{Size: "small"}, "59754"},
+		{"medium", taskItem{Size: "Medium"}, "59755"},
+		{"large", taskItem{Size: "LaRGe"}, "59756"},
+		{"xlarge", taskItem{Size: "xLarge"}, "59757"},
+	}
+
+	for _, tt := range pickTests {
+		t.Run(tt.name, func(t *testing.T) {
+			size, err := PickSize(&tt.in, sizeResponse)
+			if err != nil {
+				t.Error(err)
+			}
+			assert.Equal(t, tt.out, size)
+		})
+	}
+}
+
 func TestPickSizeNoSize(t *testing.T) {
 	item := taskItem{
 		[]string{"temp"},
