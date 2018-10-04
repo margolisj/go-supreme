@@ -247,7 +247,7 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 
 	task.Log().Info().Msg(resp.String())
 
-	return false, nil
+	return true, nil
 }
 
 // FindItem finds a task item in the slice of supreme items

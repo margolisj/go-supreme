@@ -201,7 +201,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 	var xcsrf string
 	task.UpdateStatus("Going to item page")
 	err = retry(10, 50*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
+		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
 		var err error
 		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, task, matchedItem.url)
 		return err
