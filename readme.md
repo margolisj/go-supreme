@@ -73,21 +73,25 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 
 ## TODO:
 ### Current
-* Review security code
-  * Add key versioning
-* Add proxy support
-* Unify / pool initial item search
-* Add mobile API
+* Test if I can add cookie and skip checkout
+* Possibly increase ATC retries to a much higher number, also increase sleep time while retrying, like monitor
+* Add Mobile API
   * Figure out if mobile can also skip captcha
   * Model an interface for mobile and desktop
+* Unify / pool initial item search
+* Review security code
+  * Add key versioning
+  * Add date added
+
+### Pipeline
+* Add proxy support
+* Add any size keyword
 * https://sequencediagram.org/ Diagram calls
 * UI Text
   * https://github.com/gizak/termui
   * https://github.com/jroimartin/gocui
   * https://github.com/gdamore/tcell
-
-### Pipeline
-* UI Version
+* Full UI Version
   * Add ability to kill one of these go routines via select statement from either cancel channel
       * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
   * Add gcapture code in case they revert
@@ -126,15 +130,20 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Replace logging with: https://github.com/rs/zerolog - 9/29
 * Figure out how much time jitter adds to retry, we probably want this kept to a minimum - 9/29
 * Task Update: - 10/2
-  * Add and use task Id in logging- 10/2
-  * Set task status during everything - 10/2
-  * Move checkout make it work off task log instead of with ID int - 10/2
+  * Add and use task Id in logging
+  * Set task status during everything
+  * Move checkout make it work off task log instead of with ID int
 * Add support to generate multiple binaries - 10/2
 * Go over with spell check - 10/2
 * Settings support for different checkout sleep speeds via settings file - 10/2
 * Add Licensing and Server Authentication - 10/3
-* Add map of all categories
-
+* Add map of all categories - 10/3
+* Update log-stats to use taskID and command line - 10/4
+* Bug fixes - 10/4
+  * Fix unlabled logging that should be there
+  * Add log to print item information
+  * If ATC is false should kill task
+  * Add validity check for items and other fields
 
 ## Objectives
 
@@ -172,3 +181,4 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * https://upgear.io/blog/simple-golang-retry-function/
 * https://kaviraj.me/understanding-condition-variable-in-go/
 * https://github.com/golang/go/wiki/WindowsCrossCompiling
+* https://github.com/StefanSchroeder/Golang-Regex-Tutorial/blob/master/01-chapter2.markdown

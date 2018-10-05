@@ -91,9 +91,33 @@ func TestVerifyTaskValidAmex(t *testing.T) {
 	task.Account.Card.Cvv = "1234"
 	valid, err := task.VerifyTask()
 	if err != nil {
-		t.Log(err)
+		t.Error(err)
 	}
 	assert.True(t, valid)
+}
+
+func TestVeriifyTaskMissingItem(t *testing.T) {
+	task := testTask()
+	task.Item = taskItem{}
+	valid, err := task.VerifyTask()
+	assert.Equal(t, errors.New("Task category not found"), err)
+	assert.False(t, valid)
+}
+
+func TestVeriifyTaskIncorrectCategory(t *testing.T) {
+	task := testTask()
+	task.Item = taskItem{}
+	valid, err := task.VerifyTask()
+	assert.Equal(t, errors.New("Task category not found"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskMissingKeywords(t *testing.T) {
+	task := testTask()
+	task.Item.Keywords = []string{}
+	valid, err := task.VerifyTask()
+	assert.Equal(t, errors.New("Task keywords were not provided"), err)
+	assert.False(t, valid)
 }
 
 func TestVerifyTaskBadPhoneNumber(t *testing.T) {

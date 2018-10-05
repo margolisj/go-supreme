@@ -114,12 +114,12 @@ func main() {
 
 			success, err := innerTask.SupremeCheckout()
 			if err != nil {
-				log.Error().Msgf("%d Error checkout: %s", i, err)
+				taskLogger.Error().Msgf("%d Error in checkout loop: %s", i, err)
 			}
 
 			innerTask.Log().Info().
 				Bool("success", success).
-				Msg("Checkout completed")
+				Msg("Checkout loop completed")
 
 		}(i, task)
 	}

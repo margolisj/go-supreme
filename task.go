@@ -109,9 +109,18 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 // VerifyTask verifies the information provided in the task to make sure it is
 // what the rest of the application expects
 func (task *Task) VerifyTask() (bool, error) {
-	// Task cateogry
-	if val, ok := supremeCategories[task.Item.Category]; !ok {
-		return false, fmt.Errorf("Task category %s not found", val)
+	// Task category
+	if _, ok := supremeCategories[task.Item.Category]; !ok {
+		return false, errors.New("Task category not found")
+	}
+	// Task keywords
+	if len(task.Item.Keywords) == 0 {
+		return false, errors.New("Task keywords were not provided")
+	}
+
+	// Email
+	if task.Account.Person.Email == "" {
+		return false, errors.New("Email address field was empty")
 	}
 
 	// Phone number
@@ -177,6 +186,9 @@ func (task *Task) SupremeCheckout() (bool, error) {
 	var matchedItem SupremeItem // The item on the supreme site we will buy
 	var err error
 	session := grequests.NewSession(nil)
+	task.Log().Debug().
+		Str("item", fmt.Sprintf("%+v", task.Item)).
+		Msg("Checking out item")
 
 	// Try to find the item provided in keywords etc
 	task.UpdateStatus("Looking for item")
@@ -200,7 +212,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 	var addURL string
 	var xcsrf string
 	task.UpdateStatus("Going to item page")
-	err = retry(10, 50*time.Millisecond, func(attempt int) error {
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
 		var err error
 		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, task, matchedItem.url)
@@ -220,19 +232,23 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		task.Log().Error().Err(err).Msgf("Unable to pick size")
 		return false, err
 	}
+	// TODO: Figure out if we want ATC to continue to try or fail
 	var atcSuccess bool
-	err = retry(10, 50*time.Millisecond, func(attempt int) error {
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
 		var err error
 		atcSuccess, err = AddToCart(session, task, addURL, xcsrf, st, pickedSizeID)
 		return err
 	})
 	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
+	if !atcSuccess {
+		return false, nil
+	}
 	time.Sleep(time.Duration(appSettings.CheckoutWait) * time.Millisecond)
 
 	// Checkout
 	task.UpdateStatus("Checking out")
-	task.Log().Debug().Msgf("Checking out using data %s", task.Account)
+	task.Log().Debug().Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
 	var checkoutSuccess bool
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
@@ -241,10 +257,12 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		return err
 	})
 	elapsed := time.Since(startTime)
+
+	// Status and send info
 	task.Log().Debug().
-		Bool("success", checkoutSuccess).
 		Float64("timeElapsed", elapsed.Seconds()).
-		Msgf("Checkout completed")
+		Bool("success", checkoutSuccess).
+		Msgf("Supreme checkout completed")
 	if checkoutSuccess {
 		task.UpdateStatus("Checked out successfully")
 	} else {

@@ -244,8 +244,13 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 		task.Log().Warn().Msgf("%v", resp.RawResponse)
 		return false, errors.New("ATC Req did not return OK")
 	}
-
+	respString := resp.String()
 	task.Log().Info().Msg(resp.String())
+
+	if strings.Contains(respString, "cart-controls-sold-out") {
+		log.Info().Msg("Item sold out on ATc attempt")
+		return false, nil
+	}
 
 	return true, nil
 }
@@ -369,6 +374,8 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 		return false, nil
 	}
 
+	// TODO: Figure out what a successful response looks like on desktop and
+	// fix this because currently getting false positives, see
 	return true, nil
 }
 
@@ -412,6 +419,8 @@ func queue(task *Task, session *grequests.Session, originalRespString string) (b
 	}
 
 	respString := resp.String()
+	task.Log().Debug().Msgf("%s", respString)
+	task.Log().Debug().Msgf("%v", resp.RawResponse)
 
 	if strings.Contains(respString, "queued") {
 		task.Log().Debug().
