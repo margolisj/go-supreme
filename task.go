@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/url"
+	"os"
 	"regexp"
 	"time"
 
@@ -22,11 +24,11 @@ type Person struct {
 
 // Card is a struct modeling a credit card
 type Card struct {
-	Cardtype string `json:"cardtype"` // Don't think this matters for desktop, also should be able to figure this out without user entry
 	Number   string `json:"number"`   // Card numbers must have spaces "XXXX XXXX XXXX XXXX"
 	Month    string `json:"month"`    // Two digit month, ex. 03
 	Year     string `json:"year"`     // 4 digit year, ex. 2019
 	Cvv      string `json:"cvv"`      // 3 digit or 4 digit
+	Cardtype string `json:"cardtype"` // Don't think this matters for desktop, also should be able to figure this out without user entry
 }
 
 // Address is a struct modeling an address
@@ -295,4 +297,85 @@ func waitForItemMatch(session *grequests.Session, task *Task) (SupremeItem, erro
 	}
 
 	return SupremeItem{}, errors.New("No matches found in collection")
+}
+
+// SupremeCheckoutMobile Completes a checkout on supreme using the mobile API
+func (task *Task) SupremeCheckoutMobile() (bool, error) {
+	var matchedItem SupremeItemMobile // The item on the supreme site we will buy
+	var matchedSuccess = false
+	// var err error
+	session := grequests.NewSession(nil)
+
+	itemsMobile, err := GetCollectionItemsMobile(session, task)
+	if err != nil {
+		return false, errors.New("Unable to get collection items")
+	}
+	task.Log().Debug().Msgf("%+v", itemsMobile)
+
+	// var matchedSupremeItemMobileID int
+	for _, item := range *itemsMobile {
+		task.Log().Debug().Msgf("%+v", item)
+		task.Log().Debug().Msgf("%+v %s", task.Item.Keywords, item.name)
+
+		if checkKeywords(task.Item.Keywords, item.name) {
+			// matchedSupremeItemMobileID = item.id
+			matchedItem = item
+			matchedSuccess = true
+			break
+		}
+	}
+	if !matchedSuccess {
+		return false, errors.New("Unable to match item keywords")
+	}
+	task.Log().Debug().Msgf("%+v", matchedItem)
+
+	startTime := time.Now()
+
+	styles, err := GetSizeInfoMobile(session, task, matchedItem)
+
+	var matchedStyle Style
+	for _, style := range styles {
+		if checkColor(task.Item.Color, style.Name) {
+			matchedStyle = style
+			break
+		}
+	}
+	// [{Name:Small ID:59764 StockLevel:1} {Name:Medium ID:59765 StockLevel:1} {Name:Large ID:59766 StockLevel:1} {Name:XLarge ID:59767 StockLevel:0}]}
+	// [{Name:N/A ID:59191 StockLevel:1}]}
+	task.Log().Debug().Msgf("%+v", matchedStyle)
+
+	pickedSizeID, err := PickSizeMobile(&task.Item, matchedStyle)
+	if err != nil {
+		task.Log().Error().Err(err).Msg("Error picking size")
+	}
+	task.Log().Debug().Msgf("Picked size Id: %d", pickedSizeID)
+
+	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
+
+	atcSuccess, err := AddToCartMobile(session, task, matchedItem.id, matchedStyle.ID, pickedSizeID)
+	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
+
+	// Purecart implementation?
+	// supremeURL, _ := url.Parse("http://www.supremenewyork.com")
+	// task.Log().Debug().Msgf("%+v", session.HTTPClient.Jar.Cookies(supremeURL))
+
+	//     task.products.forEach(product => cookie_sub_dict[product.variantsIds.sizeId] = product.quantity);
+
+	// %7B%2259765%22%3A1%7D => {"59765":1}
+	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
+	checkoutSuccess, err := CheckoutMobile(session, task, cookieSub)
+	elapsed := time.Since(startTime)
+
+	// Status and send info
+	task.Log().Debug().
+		Float64("timeElapsed", elapsed.Seconds()).
+		Bool("success", checkoutSuccess).
+		Msgf("Supreme checkout completed")
+	if checkoutSuccess {
+		task.UpdateStatus("Checked out successfully")
+	} else {
+		task.UpdateStatus("Checkout failed")
+	}
+
+	return checkoutSuccess, nil // TODO: Replace with real value
 }

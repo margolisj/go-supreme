@@ -187,3 +187,31 @@ func TestVertifyTasksBad(t *testing.T) {
 		2: errors.New("Credit card number was not correct"),
 	}, errs)
 }
+
+func TestTaskSupremeCheckoutMobile(t *testing.T) {
+	task := Task{
+		TaskName: "Task1",
+		Item: taskItem{
+			[]string{"Briefs"},
+			"accessories",
+			"medium",
+			"white",
+		},
+		Account: testAccount(),
+	}
+	// task := Task{
+	// 	TaskName: "Task1",
+	// 	Item: taskItem{
+	// 		[]string{"gold"},
+	// 		"accessories",
+	// 		"",
+	// 		"gold",
+	// 	},
+	// 	Account: testAccount(),
+	// }
+	success, err := task.SupremeCheckoutMobile()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(success)
+}

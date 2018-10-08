@@ -73,18 +73,16 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 
 ## TODO:
 ### Current
-* Test if I can add cookie and skip checkout
-* Possibly increase ATC retries to a much higher number, also increase sleep time while retrying, like monitor
-* Add Mobile API
-  * Figure out if mobile can also skip captcha
-  * Model an interface for mobile and desktop
 * Unify / pool initial item search
+* Possibly increase ATC retries to a much higher number, also increase sleep time while retrying, like monitor
 * Review security code
   * Add key versioning
   * Add date added
 
 ### Pipeline
-* Add proxy support
+* Test if I can add cookie and skip checkout
+* Clean up code and model an interface for mobile and desktop
+* Add proxy support for each task
 * Add any size keyword
 * https://sequencediagram.org/ Diagram calls
 * UI Text
@@ -144,6 +142,8 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
   * Add log to print item information
   * If ATC is false should kill task
   * Add validity check for items and other fields
+* Add Mobile API - 10/6
+  * Figure out if mobile can also skip captcha - 10/6
 
 ## Objectives
 ### 9/20/18
