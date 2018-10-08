@@ -22,7 +22,7 @@ func TestFindSingleItem(t *testing.T) {
 		"White",
 		"shop/accessories/nckme38ul/iimyp2ogd",
 	}
-	supremeItems := SupremeItems{targetItem}
+	supremeItems := []SupremeItem{targetItem}
 
 	foundItem, err := findItem(taskItem, supremeItems)
 	if err != nil {

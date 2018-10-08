@@ -94,9 +94,15 @@ func (task *Task) UpdateStatus(status string) {
 // Log returns the logger associated with the task
 func (task *Task) Log() *zerolog.Logger {
 	if task.log == nil {
-		tempLogger := log.With().Str("taskID", task.id).Logger()
-		task.log = &tempLogger
-		return task.log
+		// Logger for testing
+		if log == nil {
+			testLogger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr})
+			task.log = &testLogger
+		} else {
+			// If task wasn't provided a logger during runtime
+			tempLogger := log.With().Str("taskID", task.id).Logger()
+			task.log = &tempLogger
+		}
 	}
 	return task.log
 }

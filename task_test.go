@@ -8,49 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testAccount() Account {
-	p := Person{
-		"Jax",
-		"Blax",
-		"none@none.com",
-		"215-834-1857",
-	}
-
-	a := Address{
-		"102 Broad Street",
-		"",
-		"12345",
-		"Philadeliphia",
-		"PA",
-		"USA",
-	}
-
-	c := Card{
-		"visa",
-		"1285 4827 5948 2017",
-		"02",
-		"2019",
-		"847",
-	}
-
-	return Account{p, a, c}
-}
-
-func testTask() Task {
-	item := taskItem{
-		[]string{"shaolin"},
-		"shirts",
-		"",
-		"orange",
-	}
-
-	return Task{
-		TaskName: "Task1",
-		Item:     item,
-		Account:  testAccount(),
-	}
-}
-
 func TestTaskMarshal(t *testing.T) {
 	_, err := json.Marshal(testTask())
 	if err != nil {

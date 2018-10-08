@@ -146,19 +146,24 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
   * Add validity check for items and other fields
 
 ## Objectives
-
 ### 9/20/18
-* Test - SUCESSFUL, 3 Liquid Tees but ended in crash
+* Test - Successful, 3 Liquid Tees but ended in crash
 
 ### 9/27/18
 * Failed - Massive amount of user error, set up almost all of the item incorrectly
 
 ### 10/4/18
-* Test queuing properly
+* Failed - Unsure but I belive the mobile API dropped first
+* Test queuing properly - worked
 * Run more versions:
-  * Find beta testers
-  * Run at parents and locally
-  * Test on Google cloud
+  * Find beta testers - Found 4, 2.5 ran
+  * Run at parents and locally - Did not set up, used 
+  * Test on Google cloud - Did not set up
+
+### 10/11/18
+* Add beta testers
+* Test mobile API
+* Test unified search pool
 
 ## Libraries and Code Examples
 

@@ -20,18 +20,6 @@ type SupremeItem struct {
 	url   string
 }
 
-// SupremeItems a slice of supreme items
-type SupremeItems []SupremeItem
-
-// checkoutJSON the json response provided after check out.
-// This does not capture all the possible checkout response only
-// the response if we need to queue
-type checkoutJSON struct {
-	Status string `json:"status"`
-	Slug   string `json:"slug"`
-	Errors string `json:"errors"`
-}
-
 /* These are the collection "names" -> actual urls
 jackets -> https://www.supremenewyork.com/shop/all/jackets
 shirts -> https://www.supremenewyork.com/shop/all/shirts
@@ -60,9 +48,9 @@ var supremeCategories = map[string]string{
 	"shoes":         "shoes",
 }
 
-// GetCollectionItems Gets the collection items from a specific category. If inStockOnly is true then
+// GetCollectionItems Gets the items from a specific category. If inStockOnly is true then
 // the function will only return instock items.
-func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool) (*SupremeItems, error) {
+func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool) (*[]SupremeItem, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
@@ -90,13 +78,13 @@ func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool
 		return nil, err
 	}
 	items := parseCategoryPage(doc, inStockOnly)
-	task.Log().Debug().Msgf("Items Found: %d", len(*items))
+	task.Log().Debug().Msgf("Items Found: %d in category %s", len(*items), task.Item.Category)
 
 	return items, nil
 }
 
-func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *SupremeItems {
-	var items SupremeItems
+func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *[]SupremeItem {
+	var items []SupremeItem
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
 		// First check sold out status
 		soldOut := s.Find("a .sold_out_tag").Size() != 0
@@ -113,7 +101,7 @@ func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *SupremeItems {
 	return &items
 }
 
-// GetSizeInfo Gets st and size options for an item by going to the item page
+// GetSizeInfo gets st and size options for an item by going to the item page
 // and retrieving the options from it.
 // itemURLStuffix is in the format "/shop/accessories/jdbpyos48/iimyp2ogd"
 func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix string) (string, SizeResponse, string, string, error) {
@@ -213,7 +201,7 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
 			"accept":           "*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript",
-			"accept-encoding":  "gzip, deflate, br",
+			"accept-encoding":  "gzip, deflate, br", //TODO: Test if this works without it
 			"accept-language":  "en-US,en;q=0.9",
 			"referer":          addURL,
 			"x-csrf-token":     xcsrf,
@@ -223,8 +211,8 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 		},
 		Data: map[string]string{
 			"utf8":   "✓",
-			"st":     st,
-			"s":      s, // Size
+			"st":     st, // Style
+			"s":      s,  // Size
 			"commit": "add to cart",
 		},
 	}
@@ -256,7 +244,7 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 }
 
 // FindItem finds a task item in the slice of supreme items
-func findItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error) {
+func findItem(taskItem taskItem, supremeItems []SupremeItem) (SupremeItem, error) {
 	for _, supItem := range supremeItems {
 		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
 			return supItem, nil
@@ -266,21 +254,33 @@ func findItem(taskItem taskItem, supremeItems SupremeItems) (SupremeItem, error)
 	return SupremeItem{}, errors.New("Unable to match item")
 }
 
+// TODO: Move any tolower processing to task creation
 func checkKeywords(keywords []string, supremeItemName string) bool {
 	for _, keyword := range keywords {
 		if !strings.Contains(strings.ToLower(supremeItemName), strings.ToLower(keyword)) {
+			// fmt.Printf("%s doesn't contain %s\n", supremeItemName, keyword)
 			return false
 		}
 	}
 	return true
 }
 
+// TODO: Make sure that all the comibations of different things wil lmake this work with mobile as well
 // checkColor checks the supreme item color to see if it contains the task color
 func checkColor(taskItemColor string, supremeItemColor string) bool {
 	if taskItemColor == "" {
 		return true
 	}
 	return strings.Contains(strings.ToLower(strings.TrimSpace(supremeItemColor)), strings.ToLower(taskItemColor))
+}
+
+// checkoutJSON the json response provided after check out.
+// This does not capture all the possible checkout response only
+// the response if we need to queue
+type checkoutJSON struct {
+	Status string `json:"status"`
+	Slug   string `json:"slug"`
+	Errors string `json:"errors"`
 }
 
 // Checkout Checks out a task. If there is an issue with
@@ -328,14 +328,13 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 	}
 
 	resp, err := session.Post("https://www.supremenewyork.com/checkout.json", localRo)
-
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Checkout Error")
 		return false, err
 	}
+	respString := resp.String()
 
 	task.Log().Debug().Msg("----------------RESPONSE----------------")
-	respString := resp.String()
 	task.Log().Debug().Msgf("%s", respString)
 	task.Log().Debug().Msgf("%v", resp.RawResponse)
 
@@ -358,7 +357,7 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 		task.Log().Error().
 			Str("reason", "failed").
 			Str("response", respString).
-			Msg("Queue failed.")
+			Msg("Checkout failed.")
 		return false, nil
 	} else if strings.Contains(respString, "outOfStock") {
 		task.Log().Error().
