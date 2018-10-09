@@ -55,22 +55,14 @@ type taskItem struct {
 	Color    string   `json:"color"`
 }
 
-// type proxy struct {
-// 	ip       string
-// 	port     string
-// 	username string
-// 	password string
-// }
-
 // Task is a checkout account and an item(s) to checkout
 type Task struct {
 	TaskName string   `json:"taskName"`
 	Item     taskItem `json:"item"`
 	Account  Account  `json:"account"`
-	// proxy    proxy
-	status string
-	id     string
-	log    *zerolog.Logger
+	status   string
+	id       string
+	log      *zerolog.Logger
 }
 
 // ImportTasksFromJSON imports a list of tasks from a json file

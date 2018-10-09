@@ -187,3 +187,4 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * https://kaviraj.me/understanding-condition-variable-in-go/
 * https://github.com/golang/go/wiki/WindowsCrossCompiling
 * https://github.com/StefanSchroeder/Golang-Regex-Tutorial/blob/master/01-chapter2.markdown
+* https://medium.com/@mlowicki/https-proxies-support-in-go-1-10-b956fb501d6b
