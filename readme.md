@@ -47,6 +47,7 @@ The task file is plain json.
         "cvv": "789"
       }
     }
+    "api": "mobile"
   }
 ]
 ```
@@ -54,9 +55,10 @@ The task file is plain json.
 ### Settings Setup
 ```
 {
+  "startTime": "2018-10-10T14:59:30.000Z",
   "refreshWait": 300,
   "atcWait": 800,
-  "checkoutWait": 800
+  "checkoutWait": 800,
 }
 ```
 
@@ -66,33 +68,38 @@ To build different versions you will need to setup goreleaser using brew or some
 goreleaser --snapshot
 ~~~~
 
+### Build Windows Only
+```
+GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
+```
+
 ## TODO:
 ### Current
 * Review security code
   * Add key versioning
-* Add proxy support
+  * Add date added
 * Unify / pool initial item search
-* Add mobile API
-  * Figure out if mobile can also skip captcha
-  * Model an interface for mobile and desktop
+* Add proxy support for each task
+* Increased security
+  * https://nucleus.sh/docs/sell - For the entire js application
+  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+
+### Pipeline
+* Test if I can add cookie and skip ATC
+* Clean up code and model an interface for mobile and desktop
+* Add any size keyword
 * https://sequencediagram.org/ Diagram calls
 * UI Text
   * https://github.com/gizak/termui
   * https://github.com/jroimartin/gocui
   * https://github.com/gdamore/tcell
-
-### Pipeline
-* UI Version
+* Full UI Version
   * Add ability to kill one of these go routines via select statement from either cancel channel
       * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
   * Add gcapture code in case they revert
 * Command line to feed in file different commands
   * https://github.com/spf13/cobra
 * Restock monitor
-* Increased security
-  * https://nucleus.sh/docs/sell - For the entire js application
-  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
-
 
 ### Completed
 * Finish API - 9/19
@@ -121,30 +128,50 @@ goreleaser --snapshot
 * Replace logging with: https://github.com/rs/zerolog - 9/29
 * Figure out how much time jitter adds to retry, we probably want this kept to a minimum - 9/29
 * Task Update: - 10/2
-  * Add and use task Id in logging- 10/2
-  * Set task status during everything - 10/2
-  * Move checkout make it work off task log instead of with ID int - 10/2
+  * Add and use task Id in logging
+  * Set task status during everything
+  * Move checkout make it work off task log instead of with ID int
 * Add support to generate multiple binaries - 10/2
 * Go over with spell check - 10/2
 * Settings support for different checkout sleep speeds via settings file - 10/2
 * Add Licensing and Server Authentication - 10/3
-* Add map of all categories
-
+* Add map of all categories - 10/3
+* Update log-stats to use taskID and command line - 10/4
+* Bug fixes - 10/4
+  * Fix unlabled logging that should be there
+  * Add log to print item information
+  * If ATC is false should kill task
+  * Add validity check for items and other fields
+* Add Mobile API - 10/6
+  * Figure out if mobile can also skip captcha - 10/6
+* Finish task SupremeMobileCheckout - 10/9
+* Add scheduling for start - 10/9
+* Add start time to settings - 10/10
+* Add different API selection to each task - 10/10
+* Add unit tests for mobile API - 10/10
 
 ## Objectives
-
 ### 9/20/18
-* Test - SUCESSFUL, 3 Liquid Tees but ended in crash
+* Test - Successful, 3 Liquid Tees but ended in crash
 
 ### 9/27/18
 * Failed - Massive amount of user error, set up almost all of the item incorrectly
 
 ### 10/4/18
-* Test queuing properly
+* Failed - Unsure but I believe the mobile API dropped first, some got to checkout but were denied
+* Test queuing properly - worked
 * Run more versions:
-  * Find beta testers
-  * Run at parents and locally
-  * Test on Google cloud
+  * Find beta testers - Found 4, 2.5 ran
+  * Run at parents and locally - Did not set up, used 
+  * Test on Google cloud - Did not set up
+
+### 10/11/18
+* Add beta testers
+  * Added 3 more as of now
+* Test mobile API
+* Figure out different ATC responses and replace this with grequests
+* Stretch - Test unified search pool
+
 
 ## Libraries and Code Examples
 
@@ -167,3 +194,5 @@ goreleaser --snapshot
 * https://upgear.io/blog/simple-golang-retry-function/
 * https://kaviraj.me/understanding-condition-variable-in-go/
 * https://github.com/golang/go/wiki/WindowsCrossCompiling
+* https://github.com/StefanSchroeder/Golang-Regex-Tutorial/blob/master/01-chapter2.markdown
+* https://medium.com/@mlowicki/https-proxies-support-in-go-1-10-b956fb501d6b

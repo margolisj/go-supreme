@@ -3,53 +3,11 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func testAccount() Account {
-	p := Person{
-		"Jax",
-		"Blax",
-		"none@none.com",
-		"215-834-1857",
-	}
-
-	a := Address{
-		"102 Broad Street",
-		"",
-		"12345",
-		"Philadeliphia",
-		"PA",
-		"USA",
-	}
-
-	c := Card{
-		"visa",
-		"1285 4827 5948 2017",
-		"02",
-		"2019",
-		"847",
-	}
-
-	return Account{p, a, c}
-}
-
-func testTask() Task {
-	item := taskItem{
-		[]string{"shaolin"},
-		"shirts",
-		"",
-		"orange",
-	}
-
-	return Task{
-		TaskName: "Task1",
-		Item:     item,
-		Account:  testAccount(),
-	}
-}
 
 func TestTaskMarshal(t *testing.T) {
 	_, err := json.Marshal(testTask())
@@ -59,7 +17,41 @@ func TestTaskMarshal(t *testing.T) {
 }
 
 func TestFullTaskUnmarhsal(t *testing.T) {
-	s := []byte(`{"taskName":"Task1","item":{"keywords":["shaolin"],"category":"hats","size":"","color":"orange"},"account":{"person":{"firstname":"Jax","lastname":"Blax","email":"none@none.com","phoneNumber":"215-834-1857"},"address":{"address1":"102 Broad Street","address2":"","zipcode":"12345","city":"Philadeliphia","state":"PA","country":"USA"},"card":{"cardtype":"visa","number":"1285 4827 5948 2017","month":"02","year":"2019","cvv":"847"}}}`)
+	s := []byte(`{
+		"taskName": "Task1",
+		"item": {
+			"keywords": [
+				"shaolin"
+			],
+			"category": "hats",
+			"size": "",
+			"color": "orange"
+		},
+		"account": {
+			"person": {
+				"firstname": "Jax",
+				"lastname": "Blax",
+				"email": "none@none.com",
+				"phoneNumber": "215-834-1857"
+			},
+			"address": {
+				"address1": "102 Broad Street",
+				"address2": "",
+				"zipcode": "12345",
+				"city": "Philadeliphia",
+				"state": "PA",
+				"country": "USA"
+			},
+			"card": {
+				"cardtype": "visa",
+				"number": "1285 4827 5948 2017",
+				"month": "02",
+				"year": "2019",
+				"cvv": "847"
+			}
+		},
+		"api": "desktop"
+	}`)
 	var tas Task
 	if err := json.Unmarshal(s, &tas); err != nil {
 		t.Error(err)
@@ -91,9 +83,33 @@ func TestVerifyTaskValidAmex(t *testing.T) {
 	task.Account.Card.Cvv = "1234"
 	valid, err := task.VerifyTask()
 	if err != nil {
-		t.Log(err)
+		t.Error(err)
 	}
 	assert.True(t, valid)
+}
+
+func TestVeriifyTaskMissingItem(t *testing.T) {
+	task := testTask()
+	task.Item = taskItem{}
+	valid, err := task.VerifyTask()
+	assert.Equal(t, errors.New("Task category not found"), err)
+	assert.False(t, valid)
+}
+
+func TestVeriifyTaskIncorrectCategory(t *testing.T) {
+	task := testTask()
+	task.Item = taskItem{}
+	valid, err := task.VerifyTask()
+	assert.Equal(t, errors.New("Task category not found"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskMissingKeywords(t *testing.T) {
+	task := testTask()
+	task.Item.Keywords = []string{}
+	valid, err := task.VerifyTask()
+	assert.Equal(t, errors.New("Task keywords were not provided"), err)
+	assert.False(t, valid)
 }
 
 func TestVerifyTaskBadPhoneNumber(t *testing.T) {
@@ -190,6 +206,14 @@ func TestVerifyTaskBadYear(t *testing.T) {
 	assert.False(t, valid)
 }
 
+func TestVerifyTaskBadAPI(t *testing.T) {
+	task := testTask()
+	task.API = "asdf"
+	valid, err := task.VerifyTask()
+	assert.Equal(t, fmt.Errorf("API value %s was incorrect", task.API), err)
+	assert.False(t, valid)
+}
+
 func TestVerifyTasks(t *testing.T) {
 	tasks := []Task{testTask(), testTask(), testTask()}
 	valid, errs := VerifyTasks(&tasks)
@@ -206,3 +230,31 @@ func TestVertifyTasksBad(t *testing.T) {
 		2: errors.New("Credit card number was not correct"),
 	}, errs)
 }
+
+// func TestTaskSupremeCheckoutMobile(t *testing.T) {
+// 	task := Task{
+// 		TaskName: "Task1",
+// 		Item: taskItem{
+// 			[]string{"Briefs"},
+// 			"accessories",
+// 			"medium",
+// 			"white",
+// 		},
+// 		Account: testAccount(),
+// 	}
+// 	// task := Task{
+// 	// 	TaskName: "Task1",
+// 	// 	Item: taskItem{
+// 	// 		[]string{"gold"},
+// 	// 		"accessories",
+// 	// 		"",
+// 	// 		"gold",
+// 	// 	},
+// 	// 	Account: testAccount(),
+// 	// }
+// 	success, err := task.SupremeCheckoutMobile()
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	t.Log(success)
+// }

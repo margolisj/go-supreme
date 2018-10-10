@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,20 +20,22 @@ import (
 const (
 	account string = "e99bd6f7-900f-4bed-a440-f445fc572fc6"
 	product string = "a7e001f3-3194-4927-88eb-dd37366ab8ed"
-	version string = "0.0.1"
+	version string = "0.0.2"
 )
 
 // log is the main logging instance used in this application
 var log *zerolog.Logger
 
 type applicationSettings struct {
-	RefreshWait  int `json:"refreshWait"`
-	AtcWait      int `json:"atcWait"`
-	CheckoutWait int `json:"checkoutWait"`
+	StartTime    string `json:"startTime"`
+	RefreshWait  int    `json:"refreshWait"`
+	AtcWait      int    `json:"atcWait"`
+	CheckoutWait int    `json:"checkoutWait"`
 }
 
 // appSettings are the default application settings
 var appSettings = applicationSettings{
+	"",
 	300,
 	800,
 	800,
@@ -95,9 +99,23 @@ func main() {
 	log.Info().Msgf("Running with settings %+v", appSettings)
 	log.Info().Msgf("Loaded %d tasks. Waiting to run.", len(tasks))
 
-	// Wait for the command to start
-	fmt.Print("Press 'Enter' to continue...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	if appSettings.StartTime != "" {
+		startTime, err := time.Parse(time.RFC3339, appSettings.StartTime)
+		loc, _ := time.LoadLocation("EST")
+		startTime.In(loc)
+		if err != nil {
+			log.Panic().Err(err).Msg("Unable to parse non-empty time")
+		}
+		diff := startTime.Sub(time.Now())
+		log.Info().Msgf("Waiting %f hours and %d minutes until %s EST", math.Floor(diff.Hours()), int(diff.Minutes())%60, startTime.In(loc).String())
+		startTimer := time.NewTimer(diff)
+		<-startTimer.C
+		log.Info().Msg("Timer has finished, starting:")
+	} else {
+		// Wait to start
+		fmt.Print("Press 'Enter' to continue...")
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
+	}
 
 	// Create wait group and run
 	var wg sync.WaitGroup
@@ -110,16 +128,23 @@ func main() {
 			innerTask.id = strconv.Itoa(i)
 			taskLogger := log.With().Str("taskID", innerTask.id).Logger()
 			innerTask.SetLog(&taskLogger)
-			innerTask.Log().Info().Msgf("Starting task")
 
-			success, err := innerTask.SupremeCheckout()
+			var success bool
+			if strings.ToLower(innerTask.API) == "mobile" {
+				innerTask.Log().Info().Msgf("Starting task on mobile")
+				success, err = innerTask.SupremeCheckoutMobile()
+			} else {
+				innerTask.Log().Info().Msgf("Starting task on desktop")
+				success, err = innerTask.SupremeCheckoutDesktop()
+			}
+
 			if err != nil {
-				log.Error().Msgf("%d Error checkout: %s", i, err)
+				taskLogger.Error().Msgf("%d Error in checkout loop: %s", i, err)
 			}
 
 			innerTask.Log().Info().
 				Bool("success", success).
-				Msg("Checkout completed")
+				Msg("Checkout loop completed")
 
 		}(i, task)
 	}

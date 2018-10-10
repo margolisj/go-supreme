@@ -22,7 +22,7 @@ func TestFindSingleItem(t *testing.T) {
 		"White",
 		"shop/accessories/nckme38ul/iimyp2ogd",
 	}
-	supremeItems := SupremeItems{targetItem}
+	supremeItems := []SupremeItem{targetItem}
 
 	foundItem, err := findItem(taskItem, supremeItems)
 	if err != nil {
@@ -61,6 +61,38 @@ func TestFindSingleItemFromPageSource(t *testing.T) {
 		name:  "Bone Varsity Jacket",
 		color: "Black",
 		url:   "/shop/jackets/m2ihxzpus/wq798ar2h",
+	}, foundItem)
+}
+
+func TestFindSingleItemFromPageSource2(t *testing.T) {
+	f, err := os.Open("./testData/supremeSite/10-4-18-sweatshirts.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	supremeItems := parseCategoryPage(doc, false)
+
+	taskItem := taskItem{
+		[]string{""},
+		"sweatshirts",
+		"xlarge",
+		"royal",
+	}
+
+	foundItem, err := findItem(taskItem, *supremeItems)
+
+	if err != nil {
+		t.Fail()
+	}
+	assert.Equal(t, SupremeItem{
+		name:  "Cat in the Hat Hooded Sweatshirt",
+		color: "Bright Royal",
+		url:   "/shop/sweatshirts/sym03qn9v/cshfnxl84",
 	}, foundItem)
 }
 
@@ -181,7 +213,7 @@ func TestPickSizeNoSize(t *testing.T) {
 	item := taskItem{
 		[]string{"temp"},
 		"accessories",
-		"", // No size
+		"",
 		"blue",
 	}
 
