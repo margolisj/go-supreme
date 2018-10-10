@@ -110,7 +110,9 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 // what the rest of the application expects
 func (task *Task) VerifyTask() (bool, error) {
 	// Task category
-	if _, ok := supremeCategories[task.Item.Category]; !ok {
+	_, ok := supremeCategoriesDesktop[task.Item.Category]
+	_, ok2 := supremeCategoriesMobile[task.Item.Category]
+	if !ok && !ok2 {
 		return false, errors.New("Task category not found")
 	}
 	// Task keywords
@@ -203,6 +205,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 		}
 		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
 	}
+	task.UpdateStatus("Found item")
 	task.Log().Debug().Msgf("Found item %+v %s %s %s", matchedItem, matchedItem.color, matchedItem.name, matchedItem.url)
 	startTime := time.Now()
 
@@ -292,19 +295,6 @@ func waitForItemMatchDesktop(session *grequests.Session, task *Task) (SupremeIte
 	return SupremeItem{}, errors.New("No matches found in collection")
 }
 
-func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (SupremeItemMobile, error) {
-	for _, item := range *itemsMobile {
-		// task.Log().Debug().Msgf("Found %d items", len(*itemsMobile))
-		// task.Log().Debug().Msgf("%+v", item)
-		// task.Log().Debug().Msgf("%+v %s", task.Item.Keywords, item.name)
-		if checkKeywords(taskItem.Keywords, item.name) {
-			return item, nil
-		}
-	}
-
-	return SupremeItemMobile{}, errors.New("Unable to match Item")
-}
-
 // waitForItemMatchMobile is a helper function for checkout. It waits until we find an item in the collection.
 func waitForItemMatchMobile(session *grequests.Session, task *Task) (SupremeItemMobile, error) {
 	itemsMobile, err := GetCollectionItemsMobile(session, task)
@@ -349,7 +339,18 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	task.Log().Debug().Msgf("Found item %+v", matchedItem)
 
 	startTime := time.Now()
-	styles, err := GetSizeInfoMobile(session, task, matchedItem)
+	task.UpdateStatus("Getting styles")
+	var styles []Style
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
+		var err error
+		styles, err = GetSizeInfoMobile(session, task, matchedItem)
+		return err
+	})
+	if err != nil {
+		task.Log().Error().Err(err)
+		return false, err
+	}
 
 	var matchedStyle Style
 	foundMatchedStyle := false
@@ -366,33 +367,42 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 		return false, errors.New("Unable to find style")
 	}
 	task.UpdateStatus("Matched style")
-
-	// [{Name:Small ID:59764 StockLevel:1} {Name:Medium ID:59765 StockLevel:1} {Name:Large ID:59766 StockLevel:1} {Name:XLarge ID:59767 StockLevel:0}]}
-	// [{Name:N/A ID:59191 StockLevel:1}]}
 	task.Log().Debug().Msgf("%+v", matchedStyle)
 
 	pickedSizeID, err := PickSizeMobile(&task.Item, matchedStyle)
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Error picking size")
 	}
-	task.UpdateStatus("Picked size")
-	task.Log().Debug().Msgf("Picked size Id: %d", pickedSizeID)
-	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
 
+	time.Sleep(time.Duration(appSettings.AtcWait) * time.Millisecond)
+	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
 	task.UpdateStatus("Adding item to cart")
-	atcSuccess, err := AddToCartMobile(session, task, matchedItem.id, matchedStyle.ID, pickedSizeID)
+	var atcSuccess bool
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
+		var err error
+		atcSuccess, err = AddToCartMobile(session, task, matchedItem.id, matchedStyle.ID, pickedSizeID)
+		return err
+	})
 	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
+	if !atcSuccess {
+		return false, nil
+	}
 
 	// Purecart implementation?
 	// supremeURL, _ := url.Parse("http://www.supremenewyork.com")
 	// task.Log().Debug().Msgf("%+v", session.HTTPClient.Jar.Cookies(supremeURL))
 
-	//     task.products.forEach(product => cookie_sub_dict[product.variantsIds.sizeId] = product.quantity);
-
-	// %7B%2259765%22%3A1%7D => {"59765":1}
+	time.Sleep(time.Duration(appSettings.CheckoutWait) * time.Millisecond)
 	task.UpdateStatus("Checking out")
 	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
-	checkoutSuccess, err := CheckoutMobile(session, task, cookieSub)
+	var checkoutSuccess bool
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
+		var err error
+		checkoutSuccess, err = CheckoutMobile(session, task, cookieSub)
+		return err
+	})
 	elapsed := time.Since(startTime)
 
 	task.UpdateStatus("Completed")

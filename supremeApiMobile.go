@@ -15,13 +15,11 @@ const mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0_1 like Mac OS X
 // SupremeItemMobile models the important information needed for the mobile
 // supreme API
 type SupremeItemMobile struct {
-	name  string
-	id    int
-	color string //TODO: Decide if I should remove this
+	name string
+	id   int
 }
 
 type mobileStockResponse struct {
-	// UniqueImage`json:"unique_image_url_prefixes"`
 	ProductsAndCategories map[string][]mobileItem `json:"products_and_categories"`
 	LastMobileAPIUpdate   string                  `json:"last_mobile_api_update"`
 	ReleaseDate           string                  `json:"release_date"`
@@ -56,9 +54,10 @@ func GetCollectionItemsMobile(session *grequests.Session, task *Task) (*[]Suprem
 	if err != nil {
 		return nil, err
 	}
-	// TODO: Add other error check
-
-	targetCategory := supremeCategoriesMobile[task.Item.Category]
+	targetCategory, ok := supremeCategoriesMobile[task.Item.Category]
+	if !ok {
+		return nil, errors.New("Catgeory was not found in supremeCategoriesMobile")
+	}
 	mobileItems, ok := stock.ProductsAndCategories[targetCategory]
 	if !ok {
 		return nil, errors.New("Category was incorrect")
@@ -66,7 +65,7 @@ func GetCollectionItemsMobile(session *grequests.Session, task *Task) (*[]Suprem
 
 	var items []SupremeItemMobile
 	for _, item := range mobileItems {
-		items = append(items, SupremeItemMobile{item.Name, item.ID, ""})
+		items = append(items, SupremeItemMobile{item.Name, item.ID})
 	}
 	task.Log().Debug().Msgf("Items Found: %d in category %s", len(items), task.Item.Category)
 
@@ -93,7 +92,7 @@ type SizeMobile struct {
 	StockLevel int    `json:"stock_level"`
 }
 
-// GetSizeInfoMobile gets the
+// GetSizeInfoMobile gets the size information from the item page
 func GetSizeInfoMobile(session *grequests.Session, task *Task, item SupremeItemMobile) ([]Style, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: mobileUserAgent,
@@ -118,6 +117,16 @@ func GetSizeInfoMobile(session *grequests.Session, task *Task, item SupremeItemM
 	}
 
 	return styleResponse.Styles, nil
+}
+
+func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (SupremeItemMobile, error) {
+	for _, item := range *itemsMobile {
+		if checkKeywords(taskItem.Keywords, item.name) {
+			return item, nil
+		}
+	}
+
+	return SupremeItemMobile{}, errors.New("Unable to match Item")
 }
 
 // PickSizeMobile picks a size out of the style list
@@ -169,12 +178,7 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 	}
 	respString := resp.String()
 
-	task.Log().Debug().Msg("----------------RESPONSE----------------")
 	task.Log().Debug().Msgf("%s", respString)
-	task.Log().Debug().Msgf("%v", resp.RawResponse)
-
-	task.Log().Debug().Msgf("----------------REQUEST----------------")
-	task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
 
 	if resp.Ok != true {
 		task.Log().Warn().Msgf("Checkout request did not return OK")
@@ -182,8 +186,6 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 	}
 
 	var atcResponse atcResponseMobile
-	// TODO: Figure out different ATC responses and replace this with grequests .JSON() call
-
 	task.Log().Debug().Msg(respString)
 	if err := json.Unmarshal([]byte(respString), &atcResponse); err != nil {
 		task.Log().Error().
@@ -198,11 +200,10 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 // CheckoutMobile checks out with the mobile api
 func CheckoutMobile(session *grequests.Session, task *Task, cookieSub string) (bool, error) {
 	account := task.Account
-	// TODO: Update this
+	// %7B%2259765%22%3A1%7D => {"59765":1}
 	postData := map[string]string{
-		"store_credit_id": "",
-		"from_mobile":     "1",
-		// TODO: Figure out if this is still happening
+		"store_credit_id":          "",
+		"from_mobile":              "1",
 		"cookie-sub":               cookieSub,
 		"same_as_billing_address":  "1",
 		"order[billing_name]":      account.Person.Firstname + " " + account.Person.Lastname,

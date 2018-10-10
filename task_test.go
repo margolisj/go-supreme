@@ -188,30 +188,30 @@ func TestVertifyTasksBad(t *testing.T) {
 	}, errs)
 }
 
-func TestTaskSupremeCheckoutMobile(t *testing.T) {
-	task := Task{
-		TaskName: "Task1",
-		Item: taskItem{
-			[]string{"Briefs"},
-			"accessories",
-			"medium",
-			"white",
-		},
-		Account: testAccount(),
-	}
-	// task := Task{
-	// 	TaskName: "Task1",
-	// 	Item: taskItem{
-	// 		[]string{"gold"},
-	// 		"accessories",
-	// 		"",
-	// 		"gold",
-	// 	},
-	// 	Account: testAccount(),
-	// }
-	success, err := task.SupremeCheckoutMobile()
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(success)
-}
+// func TestTaskSupremeCheckoutMobile(t *testing.T) {
+// 	task := Task{
+// 		TaskName: "Task1",
+// 		Item: taskItem{
+// 			[]string{"Briefs"},
+// 			"accessories",
+// 			"medium",
+// 			"white",
+// 		},
+// 		Account: testAccount(),
+// 	}
+// 	// task := Task{
+// 	// 	TaskName: "Task1",
+// 	// 	Item: taskItem{
+// 	// 		[]string{"gold"},
+// 	// 		"accessories",
+// 	// 		"",
+// 	// 		"gold",
+// 	// 	},
+// 	// 	Account: testAccount(),
+// 	// }
+// 	success, err := task.SupremeCheckoutMobile()
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	t.Log(success)
+// }

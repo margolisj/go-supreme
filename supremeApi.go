@@ -33,21 +33,6 @@ accessories -> https://www.supremenewyork.com/shop/all/accessories
 skate -> https://www.supremenewyork.com/shop/all/skate
 */
 
-var supremeCategories = map[string]string{
-	"jackets":       "jackets",
-	"shirts":        "shirts",
-	"tops/sweaters": "tops_sweaters",
-	"sweatshirts":   "sweatshirts",
-	"pants":         "pants",
-	"t-shirts":      "t-shirts",
-	"hats":          "hats",
-	"bags":          "bags",
-	"shorts":        "shorts",
-	"accessories":   "accessories",
-	"skate":         "skate",
-	"shoes":         "shoes",
-}
-
 // GetCollectionItems Gets the items from a specific category. If inStockOnly is true then
 // the function will only return instock items.
 func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool) (*[]SupremeItem, error) {
@@ -61,7 +46,7 @@ func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool
 		},
 	}
 	taskItem := task.Item
-	collectionURL := "https://www.supremenewyork.com/shop/all/" + supremeCategories[taskItem.Category]
+	collectionURL := "https://www.supremenewyork.com/shop/all/" + supremeCategoriesDesktop[taskItem.Category]
 	resp, err := session.Get(collectionURL, &localRo)
 	if err != nil {
 		task.Log().Error().Err(err)
@@ -252,26 +237,6 @@ func findItem(taskItem taskItem, supremeItems []SupremeItem) (SupremeItem, error
 	}
 
 	return SupremeItem{}, errors.New("Unable to match item")
-}
-
-// TODO: Move any tolower processing to task creation
-func checkKeywords(keywords []string, supremeItemName string) bool {
-	for _, keyword := range keywords {
-		if !strings.Contains(strings.ToLower(supremeItemName), strings.ToLower(keyword)) {
-			// fmt.Printf("%s doesn't contain %s\n", supremeItemName, keyword)
-			return false
-		}
-	}
-	return true
-}
-
-// TODO: Make sure that all the comibations of different things wil lmake this work with mobile as well
-// checkColor checks the supreme item color to see if it contains the task color
-func checkColor(taskItemColor string, supremeItemColor string) bool {
-	if taskItemColor == "" {
-		return true
-	}
-	return strings.Contains(strings.ToLower(strings.TrimSpace(supremeItemColor)), strings.ToLower(taskItemColor))
 }
 
 // checkoutJSON the json response provided after check out.

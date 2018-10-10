@@ -56,7 +56,7 @@ The task file is plain json.
 {
   "refreshWait": 300,
   "atcWait": 800,
-  "checkoutWait": 800
+  "checkoutWait": 800,
 }
 ```
 
@@ -73,14 +73,14 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 
 ## TODO:
 ### Current
-* Unify / pool initial item search
-* Possibly increase ATC retries to a much higher number, also increase sleep time while retrying, like monitor
+* Add scheduling
 * Review security code
   * Add key versioning
   * Add date added
 
 ### Pipeline
-* Test if I can add cookie and skip checkout
+* Unify / pool initial item search
+* Test if I can add cookie and skip ATC
 * Clean up code and model an interface for mobile and desktop
 * Add proxy support for each task
 * Add any size keyword
@@ -144,6 +144,7 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
   * Add validity check for items and other fields
 * Add Mobile API - 10/6
   * Figure out if mobile can also skip captcha - 10/6
+* Finish task SupremeMobileCheckout - 10/9
 
 ## Objectives
 ### 9/20/18
@@ -153,7 +154,7 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Failed - Massive amount of user error, set up almost all of the item incorrectly
 
 ### 10/4/18
-* Failed - Unsure but I belive the mobile API dropped first
+* Failed - Unsure but I belive the mobile API dropped first, some got to checkout but were denied
 * Test queuing properly - worked
 * Run more versions:
   * Find beta testers - Found 4, 2.5 ran
@@ -164,6 +165,8 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Add beta testers
 * Test mobile API
 * Test unified search pool
+* Figure out different ATC responses and replace this with grequests
+
 
 ## Libraries and Code Examples
 
