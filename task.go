@@ -194,7 +194,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 	task.UpdateStatus("Looking for item")
 	for {
 		// Get items in category
-		matchedItem, err = waitForItemMatch(session, task)
+		matchedItem, err = waitForItemMatchDesktop(session, task)
 		if err != nil {
 			task.Log().Error().Err(err).
 				Msgf("Error getting collection, sleeping.")
@@ -258,6 +258,7 @@ func (task *Task) SupremeCheckout() (bool, error) {
 	})
 	elapsed := time.Since(startTime)
 
+	task.UpdateStatus("Completed")
 	// Status and send info
 	task.Log().Debug().
 		Float64("timeElapsed", elapsed.Seconds()).
@@ -272,8 +273,8 @@ func (task *Task) SupremeCheckout() (bool, error) {
 	return checkoutSuccess, nil
 }
 
-// waitForItemMatch is a helper function for checkout. It waits until we find an item in the collection.
-func waitForItemMatch(session *grequests.Session, task *Task) (SupremeItem, error) {
+// waitForItemMatchDesktop is a helper function for checkout. It waits until we find an item in the collection.
+func waitForItemMatchDesktop(session *grequests.Session, task *Task) (SupremeItem, error) {
 	supremeItems, err := GetCollectionItems(session, task, true)
 	if err != nil {
 		return SupremeItem{}, errors.New("Error getting collection items")
@@ -291,47 +292,81 @@ func waitForItemMatch(session *grequests.Session, task *Task) (SupremeItem, erro
 	return SupremeItem{}, errors.New("No matches found in collection")
 }
 
+func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (SupremeItemMobile, error) {
+	for _, item := range *itemsMobile {
+		// task.Log().Debug().Msgf("Found %d items", len(*itemsMobile))
+		// task.Log().Debug().Msgf("%+v", item)
+		// task.Log().Debug().Msgf("%+v %s", task.Item.Keywords, item.name)
+		if checkKeywords(taskItem.Keywords, item.name) {
+			return item, nil
+		}
+	}
+
+	return SupremeItemMobile{}, errors.New("Unable to match Item")
+}
+
+// waitForItemMatchMobile is a helper function for checkout. It waits until we find an item in the collection.
+func waitForItemMatchMobile(session *grequests.Session, task *Task) (SupremeItemMobile, error) {
+	itemsMobile, err := GetCollectionItemsMobile(session, task)
+	if err != nil {
+		return SupremeItemMobile{}, errors.New("Error getting collection items")
+	}
+
+	if len(*itemsMobile) > 0 {
+		matchedItem, err := findItemMobile(task.Item, itemsMobile)
+		if err != nil {
+			return SupremeItemMobile{}, errors.New("Items in collection but unable to find items")
+		}
+		return matchedItem, nil
+	}
+
+	return SupremeItemMobile{}, errors.New("No matches found in collection")
+}
+
 // SupremeCheckoutMobile Completes a checkout on supreme using the mobile API
 func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	var matchedItem SupremeItemMobile // The item on the supreme site we will buy
-	var matchedSuccess = false
-	// var err error
+	var err error
 	session := grequests.NewSession(nil)
+	task.Log().Debug().
+		Str("item", fmt.Sprintf("%+v", task.Item)).
+		Msg("Checking out item")
 
-	itemsMobile, err := GetCollectionItemsMobile(session, task)
-	if err != nil {
-		return false, errors.New("Unable to get collection items")
-	}
-	task.Log().Debug().Msgf("%+v", itemsMobile)
-
-	// var matchedSupremeItemMobileID int
-	for _, item := range *itemsMobile {
-		task.Log().Debug().Msgf("%+v", item)
-		task.Log().Debug().Msgf("%+v %s", task.Item.Keywords, item.name)
-
-		if checkKeywords(task.Item.Keywords, item.name) {
-			// matchedSupremeItemMobileID = item.id
-			matchedItem = item
-			matchedSuccess = true
+		// Try to find the item provided in keywords etc
+	task.UpdateStatus("Looking for item")
+	for {
+		// Get items in category
+		matchedItem, err = waitForItemMatchMobile(session, task)
+		if err != nil {
+			task.Log().Error().Err(err).
+				Msgf("Error getting collection, sleeping.")
+		} else {
 			break
 		}
+		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
 	}
-	if !matchedSuccess {
-		return false, errors.New("Unable to match item keywords")
-	}
-	task.Log().Debug().Msgf("%+v", matchedItem)
+	task.UpdateStatus("Found item")
+	task.Log().Debug().Msgf("Found item %+v", matchedItem)
 
 	startTime := time.Now()
-
 	styles, err := GetSizeInfoMobile(session, task, matchedItem)
 
 	var matchedStyle Style
+	foundMatchedStyle := false
 	for _, style := range styles {
 		if checkColor(task.Item.Color, style.Name) {
 			matchedStyle = style
+			foundMatchedStyle = true
 			break
 		}
 	}
+
+	if !foundMatchedStyle {
+		task.Log().Error().Msg("Unable to find style")
+		return false, errors.New("Unable to find style")
+	}
+	task.UpdateStatus("Matched style")
+
 	// [{Name:Small ID:59764 StockLevel:1} {Name:Medium ID:59765 StockLevel:1} {Name:Large ID:59766 StockLevel:1} {Name:XLarge ID:59767 StockLevel:0}]}
 	// [{Name:N/A ID:59191 StockLevel:1}]}
 	task.Log().Debug().Msgf("%+v", matchedStyle)
@@ -340,10 +375,11 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Error picking size")
 	}
+	task.UpdateStatus("Picked size")
 	task.Log().Debug().Msgf("Picked size Id: %d", pickedSizeID)
-
 	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
 
+	task.UpdateStatus("Adding item to cart")
 	atcSuccess, err := AddToCartMobile(session, task, matchedItem.id, matchedStyle.ID, pickedSizeID)
 	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
 
@@ -354,10 +390,12 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	//     task.products.forEach(product => cookie_sub_dict[product.variantsIds.sizeId] = product.quantity);
 
 	// %7B%2259765%22%3A1%7D => {"59765":1}
+	task.UpdateStatus("Checking out")
 	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
 	checkoutSuccess, err := CheckoutMobile(session, task, cookieSub)
 	elapsed := time.Since(startTime)
 
+	task.UpdateStatus("Completed")
 	// Status and send info
 	task.Log().Debug().
 		Float64("timeElapsed", elapsed.Seconds()).

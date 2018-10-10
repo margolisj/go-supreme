@@ -12,22 +12,6 @@ import (
 
 const mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0_1 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A402 Safari/604.1"
 
-var supremeCategoriesMobile = map[string]string{
-	"jackets":       "Jackets",
-	"shirts":        "Shirts",
-	"tops/sweaters": "Tops/Sweaters",
-	"sweatshirts":   "Sweatshirts",
-	"pants":         "Pants",
-	"t-shirts":      "t-shirts", // Currently unknown
-	"hats":          "Hats",
-	"bags":          "Bags",
-	"shorts":        "Shorts",
-	"accessories":   "Accessories",
-	"skate":         "Skate",
-	"shoes":         "Shoes",
-	"new":           "New",
-}
-
 // SupremeItemMobile models the important information needed for the mobile
 // supreme API
 type SupremeItemMobile struct {
