@@ -74,7 +74,6 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 
 ## TODO:
 ### Current
-* Add start time and 
 * Review security code
   * Add key versioning
   * Add date added
@@ -147,6 +146,8 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
   * Figure out if mobile can also skip captcha - 10/6
 * Finish task SupremeMobileCheckout - 10/9
 * Add scheduling for start - 10/9
+* Add start time to settings - 10/10
+* Add different API selection to each task - 10/10
 
 ## Objectives
 ### 9/20/18
@@ -156,7 +157,7 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Failed - Massive amount of user error, set up almost all of the item incorrectly
 
 ### 10/4/18
-* Failed - Unsure but I belive the mobile API dropped first, some got to checkout but were denied
+* Failed - Unsure but I believe the mobile API dropped first, some got to checkout but were denied
 * Test queuing properly - worked
 * Run more versions:
   * Find beta testers - Found 4, 2.5 ran
@@ -165,9 +166,10 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 
 ### 10/11/18
 * Add beta testers
+  * Added 3 more as of now
 * Test mobile API
-* Test unified search pool
 * Figure out different ATC responses and replace this with grequests
+* Stretch - Test unified search pool
 
 
 ## Libraries and Code Examples

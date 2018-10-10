@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -109,6 +110,7 @@ func main() {
 		log.Info().Msgf("Waiting %f hours and %d minutes until %s EST", math.Floor(diff.Hours()), int(diff.Minutes())%60, startTime.In(loc).String())
 		startTimer := time.NewTimer(diff)
 		<-startTimer.C
+		log.Info().Msg("Timer has finished, starting:")
 	} else {
 		// Wait to start
 		fmt.Print("Press 'Enter' to continue...")
@@ -126,9 +128,16 @@ func main() {
 			innerTask.id = strconv.Itoa(i)
 			taskLogger := log.With().Str("taskID", innerTask.id).Logger()
 			innerTask.SetLog(&taskLogger)
-			innerTask.Log().Info().Msgf("Starting task")
 
-			success, err := innerTask.SupremeCheckout()
+			var success bool
+			if strings.ToLower(innerTask.API) == "mobile" {
+				innerTask.Log().Info().Msgf("Starting task on mobile")
+				success, err = innerTask.SupremeCheckoutMobile()
+			} else {
+				innerTask.Log().Info().Msgf("Starting task on desktop")
+				success, err = innerTask.SupremeCheckoutDesktop()
+			}
+
 			if err != nil {
 				taskLogger.Error().Msgf("%d Error in checkout loop: %s", i, err)
 			}

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/levigross/grequests"
@@ -60,6 +61,7 @@ type Task struct {
 	TaskName string   `json:"taskName"`
 	Item     taskItem `json:"item"`
 	Account  Account  `json:"account"`
+	API      string   `json:"api"`
 	status   string
 	id       string
 	log      *zerolog.Logger
@@ -162,6 +164,11 @@ func (task *Task) VerifyTask() (bool, error) {
 		return false, errors.New("Year was not correct")
 	}
 
+	// API
+	if task.API != "" && strings.ToLower(task.API) != "desktop" && strings.ToLower(task.API) != "mobile" {
+		return false, fmt.Errorf("API value %s was incorrect", task.API)
+	}
+
 	return true, nil
 }
 
@@ -183,8 +190,8 @@ func VerifyTasks(tasks *[]Task) (bool, map[int]error) {
 	return true, nil
 }
 
-// SupremeCheckout attempts to add to cart, waiting until it is available, and item and then check it out
-func (task *Task) SupremeCheckout() (bool, error) {
+// SupremeCheckoutDesktop attempts to add to cart, waiting until it is available, and item and then check it out, on the desktop API
+func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	var matchedItem SupremeItem // The item on the supreme site we will buy
 	var err error
 	session := grequests.NewSession(nil)
@@ -367,7 +374,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 		return false, errors.New("Unable to find style")
 	}
 	task.UpdateStatus("Matched style")
-	task.Log().Debug().Msgf("%+v", matchedStyle)
+	task.Log().Debug().Msgf("Matched Style: %+v", matchedStyle)
 
 	pickedSizeID, err := PickSizeMobile(&task.Item, matchedStyle)
 	if err != nil {

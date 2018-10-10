@@ -178,7 +178,7 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 	}
 	respString := resp.String()
 
-	task.Log().Debug().Msgf("%s", respString)
+	task.Log().Debug().Msgf("ATC Response: %s", respString)
 
 	if resp.Ok != true {
 		task.Log().Warn().Msgf("Checkout request did not return OK")
@@ -192,6 +192,10 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 			Str("response", respString).
 			Msg("Unable to marshall json in atcMobile")
 		return false, nil
+	}
+
+	if len(atcResponse) == 0 {
+		return false, errors.New("ATC Unsuccessfull, empty response")
 	}
 
 	return true, nil

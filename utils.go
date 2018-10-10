@@ -50,6 +50,7 @@ func testTask() Task {
 		TaskName: "Task1",
 		Item:     item,
 		Account:  testAccount(),
+		API:      "mobile",
 	}
 }
 

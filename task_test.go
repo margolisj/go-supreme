@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,41 @@ func TestTaskMarshal(t *testing.T) {
 }
 
 func TestFullTaskUnmarhsal(t *testing.T) {
-	s := []byte(`{"taskName":"Task1","item":{"keywords":["shaolin"],"category":"hats","size":"","color":"orange"},"account":{"person":{"firstname":"Jax","lastname":"Blax","email":"none@none.com","phoneNumber":"215-834-1857"},"address":{"address1":"102 Broad Street","address2":"","zipcode":"12345","city":"Philadeliphia","state":"PA","country":"USA"},"card":{"cardtype":"visa","number":"1285 4827 5948 2017","month":"02","year":"2019","cvv":"847"}}}`)
+	s := []byte(`{
+		"taskName": "Task1",
+		"item": {
+			"keywords": [
+				"shaolin"
+			],
+			"category": "hats",
+			"size": "",
+			"color": "orange"
+		},
+		"account": {
+			"person": {
+				"firstname": "Jax",
+				"lastname": "Blax",
+				"email": "none@none.com",
+				"phoneNumber": "215-834-1857"
+			},
+			"address": {
+				"address1": "102 Broad Street",
+				"address2": "",
+				"zipcode": "12345",
+				"city": "Philadeliphia",
+				"state": "PA",
+				"country": "USA"
+			},
+			"card": {
+				"cardtype": "visa",
+				"number": "1285 4827 5948 2017",
+				"month": "02",
+				"year": "2019",
+				"cvv": "847"
+			}
+		},
+		"api": "desktop"
+	}`)
 	var tas Task
 	if err := json.Unmarshal(s, &tas); err != nil {
 		t.Error(err)
@@ -168,6 +203,14 @@ func TestVerifyTaskBadYear(t *testing.T) {
 	task.Account.Card.Year = "20199"
 	valid, err = task.VerifyTask()
 	assert.Equal(t, errors.New("Year was not correct"), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskBadAPI(t *testing.T) {
+	task := testTask()
+	task.API = "asdf"
+	valid, err := task.VerifyTask()
+	assert.Equal(t, fmt.Errorf("API value %s was incorrect", task.API), err)
 	assert.False(t, valid)
 }
 
