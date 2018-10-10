@@ -54,6 +54,7 @@ The task file is plain json.
 ### Settings Setup
 ```
 {
+  "startTime": "2018-10-10T14:59:30.000Z",
   "refreshWait": 300,
   "atcWait": 800,
   "checkoutWait": 800,
@@ -73,7 +74,7 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 
 ## TODO:
 ### Current
-* Add scheduling
+* Add start time and 
 * Review security code
   * Add key versioning
   * Add date added
@@ -145,6 +146,7 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Add Mobile API - 10/6
   * Figure out if mobile can also skip captcha - 10/6
 * Finish task SupremeMobileCheckout - 10/9
+* Add scheduling for start - 10/9
 
 ## Objectives
 ### 9/20/18

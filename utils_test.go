@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -29,6 +30,16 @@ func TestRetryJitterSpeed(t *testing.T) {
 		return errors.New("Error so this repeats")
 	})
 
+}
+
+func TestReadTimeFromSTring(t *testing.T) {
+	str := "2018-10-10T14:59:30.000Z"
+	rTime, err := time.Parse(time.RFC3339, str)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	t.Log(rTime)
 }
 
 // func TestProxy(t *testing.T) {
