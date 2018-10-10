@@ -376,7 +376,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	task.UpdateStatus("Matched style")
 	task.Log().Debug().Msgf("Matched Style: %+v", matchedStyle)
 
-	pickedSizeID, err := PickSizeMobile(&task.Item, matchedStyle)
+	pickedSizeID, err := PickSizeMobile(&task.Item, &matchedStyle)
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Error picking size")
 	}
@@ -396,7 +396,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 		return false, nil
 	}
 
-	// Purecart implementation?
+	// Purecart implementation instead of building cookie sub our selves
 	// supremeURL, _ := url.Parse("http://www.supremenewyork.com")
 	// task.Log().Debug().Msgf("%+v", session.HTTPClient.Jar.Cookies(supremeURL))
 

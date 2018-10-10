@@ -130,11 +130,11 @@ func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (Suprem
 }
 
 // PickSizeMobile picks a size out of the style list
-func PickSizeMobile(taskItem *taskItem, style Style) (int, error) {
+func PickSizeMobile(taskItem *taskItem, style *Style) (int, error) {
 	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
 		if len(style.Sizes) != 1 && style.Sizes[0].Name != "N/A" {
-			return 0, errors.New("Unable to pick size, no task size specificed and style not N/a")
+			return 0, errors.New("Unable to pick size, no task size specificed and style not N/A")
 		}
 		return style.Sizes[0].ID, nil
 	}

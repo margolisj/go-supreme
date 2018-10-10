@@ -77,12 +77,15 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Review security code
   * Add key versioning
   * Add date added
+* Unify / pool initial item search
+* Add proxy support for each task
+* Increased security
+  * https://nucleus.sh/docs/sell - For the entire js application
+  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
 
 ### Pipeline
-* Unify / pool initial item search
 * Test if I can add cookie and skip ATC
 * Clean up code and model an interface for mobile and desktop
-* Add proxy support for each task
 * Add any size keyword
 * https://sequencediagram.org/ Diagram calls
 * UI Text
@@ -96,10 +99,6 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Command line to feed in file different commands
   * https://github.com/spf13/cobra
 * Restock monitor
-* Increased security
-  * https://nucleus.sh/docs/sell - For the entire js application
-  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
-
 
 ### Completed
 * Finish API - 9/19
@@ -148,6 +147,7 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Add scheduling for start - 10/9
 * Add start time to settings - 10/10
 * Add different API selection to each task - 10/10
+* Add unit tests for mobile API - 10/10
 
 ## Objectives
 ### 9/20/18

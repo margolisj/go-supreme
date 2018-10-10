@@ -213,7 +213,7 @@ func TestPickSizeNoSize(t *testing.T) {
 	item := taskItem{
 		[]string{"temp"},
 		"accessories",
-		"", // No size
+		"",
 		"blue",
 	}
 
