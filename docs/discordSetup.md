@@ -39,7 +39,8 @@ The Taskfile is valid json (you can test that with this site https://jsonlint.co
         "year": "2022",
         "cvv": "789"
       }
-    }
+    },
+    "api": "mobile"
   }
 ]```
 Currently the card type and taskName field is not used in processing. The taskName field exists so you can add a note to the task.

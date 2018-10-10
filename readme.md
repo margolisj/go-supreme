@@ -47,6 +47,7 @@ The task file is plain json.
         "cvv": "789"
       }
     }
+    "api": "mobile"
   }
 ]
 ```
