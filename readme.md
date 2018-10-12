@@ -70,23 +70,39 @@ goreleaser --snapshot
 
 ### Build Windows Only
 ```
-GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
+GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 ```
 
 ## TODO:
 ### Current
+* Bugs
+  * Add check to make sure new is only with mobile
+  * New category couldn't get item on mobile, is it working?
+  * wolf3,1 wolf3,7 - ATC response was empty, should continue to retry, in mobile
+  * Add increased checkout retry logic
+* Fix mobile for restocks
 * Review security code
+  * Create my own server
   * Add key versioning
   * Add date added
+* Remove my computers path from errors
 * Unify / pool initial item search
 * Add proxy support for each task
 * Increased security
   * https://nucleus.sh/docs/sell - For the entire js application
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+* Self deleting binary when I want the beta over
+* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
+  * https://github.com/alecthomas/gometalinter
 
 ### Pipeline
+* Metrics server
 * Test if I can add cookie and skip ATC
+* Discord and slack webhook
 * Clean up code and model an interface for mobile and desktop
+* Auto update
+  * https://github.com/tj/go-update
+  * https://github.com/inconshreveable/go-update
 * Add any size keyword
 * https://sequencediagram.org/ Diagram calls
 * UI Text
@@ -97,6 +113,10 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
   * Add ability to kill one of these go routines via select statement from either cancel channel
       * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
   * Add gcapture code in case they revert
+  * https://github.com/murlokswarm/app
+  * https://github.com/asticode/go-astilectron
+  * https://github.com/golang-ui/nuklear
+  * https://github.com/zserge/webview
 * Command line to feed in file different commands
   * https://github.com/spf13/cobra
 * Restock monitor
@@ -171,6 +191,15 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Test mobile API
 * Figure out different ATC responses and replace this with grequests
 * Stretch - Test unified search pool
+* Results:
+  * Failed - I believe delays were wrong
+    * Rohit - Delay? checkout issue
+    * Me - Card declines, delay? checkout issue, google
+    * butch - wrong category
+    * wolf - 108 / 
+  * Success
+    * Mobile API works?
+    * Scheduler works
 
 
 ## Libraries and Code Examples

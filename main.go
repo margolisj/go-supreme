@@ -101,13 +101,18 @@ func main() {
 
 	if appSettings.StartTime != "" {
 		startTime, err := time.Parse(time.RFC3339, appSettings.StartTime)
-		loc, _ := time.LoadLocation("EST")
-		startTime.In(loc)
 		if err != nil {
 			log.Panic().Err(err).Msg("Unable to parse non-empty time")
 		}
+		loc, err := time.LoadLocation("America/New_York")
+		if err != nil {
+			log.Error().Err(err).Msg("Unable load location")
+		} else {
+			startTime = startTime.In(loc)
+		}
+
 		diff := startTime.Sub(time.Now())
-		log.Info().Msgf("Waiting %f hours and %d minutes until %s EST", math.Floor(diff.Hours()), int(diff.Minutes())%60, startTime.In(loc).String())
+		log.Info().Msgf("Waiting %f hours and %d minutes until %s", math.Floor(diff.Hours()), int(diff.Minutes())%60, startTime.String())
 		startTimer := time.NewTimer(diff)
 		<-startTimer.C
 		log.Info().Msg("Timer has finished, starting:")

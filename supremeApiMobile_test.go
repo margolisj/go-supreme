@@ -28,6 +28,27 @@ func TestFindSingleItemMobile(t *testing.T) {
 	assert.Equal(t, targetItem, foundItem)
 }
 
+func TestFindSingleItemMobileHeadband(t *testing.T) {
+	taskItem := taskItem{
+		[]string{"headband"},
+		"accessories",
+		"",
+		"red",
+	}
+	targetItem := SupremeItemMobile{
+		"New Era® Big Logo Headband",
+		303674,
+	}
+	supremeItems := []SupremeItemMobile{targetItem}
+
+	foundItem, err := findItemMobile(taskItem, &supremeItems)
+	if err != nil {
+		t.Fail()
+	}
+
+	assert.Equal(t, targetItem, foundItem)
+}
+
 func TestPickSizeMobile(t *testing.T) {
 	item := taskItem{
 		[]string{"temp"},
@@ -71,6 +92,23 @@ func TestPickSizeMobileNoSize(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, 61615, itemID)
+}
+
+func TestPickSizeMobileNoSizeHeadband(t *testing.T) {
+	item := taskItem{
+		[]string{"temp"},
+		"hats",
+		"",
+		"green",
+	}
+
+	style := Style{ID: 23439, Name: "Dark Green", Sizes: []SizeMobile{SizeMobile{Name: "N/A", ID: 50557, StockLevel: 0}}}
+
+	itemID, err := PickSizeMobile(&item, &style)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 50557, itemID)
 }
 
 func TestPickSizeMobileNoTaskSizeIntoSizes(t *testing.T) {

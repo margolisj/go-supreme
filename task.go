@@ -370,10 +370,10 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	}
 
 	if !foundMatchedStyle {
-		task.Log().Error().Msg("Unable to find style")
-		return false, errors.New("Unable to find style")
+		task.Log().Error().Msg("Unable to find color")
+		return false, errors.New("Unable to find color")
 	}
-	task.UpdateStatus("Matched style")
+	task.UpdateStatus("Matched color / style")
 	task.Log().Debug().Msgf("Matched Style: %+v", matchedStyle)
 
 	pickedSizeID, err := PickSizeMobile(&task.Item, &matchedStyle)

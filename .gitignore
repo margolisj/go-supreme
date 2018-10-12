@@ -5,6 +5,7 @@ supreme
 /dist
 key.json
 /tools/beta_keys.txt
+/versions
 
 # VScode
 /.vscode
