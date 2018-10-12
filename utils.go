@@ -54,7 +54,7 @@ func testTask() Task {
 	}
 }
 
-// retry should retry any function. Used to retry http requests
+// retry will retry any function. Used to retry http requests.
 func retry(attempts int, sleep time.Duration, f func(int) error) error {
 	if err := f(attempts); err != nil {
 		if s, ok := err.(stop); ok {

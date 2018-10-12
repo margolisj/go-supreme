@@ -111,17 +111,6 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 // VerifyTask verifies the information provided in the task to make sure it is
 // what the rest of the application expects
 func (task *Task) VerifyTask() (bool, error) {
-	// Task category
-	_, ok := supremeCategoriesDesktop[task.Item.Category]
-	_, ok2 := supremeCategoriesMobile[task.Item.Category]
-	if !ok && !ok2 {
-		return false, errors.New("Task category not found")
-	}
-	// Task keywords
-	if len(task.Item.Keywords) == 0 {
-		return false, errors.New("Task keywords were not provided")
-	}
-
 	// Email
 	if task.Account.Person.Email == "" {
 		return false, errors.New("Email address field was empty")
@@ -165,8 +154,24 @@ func (task *Task) VerifyTask() (bool, error) {
 	}
 
 	// API
-	if task.API != "" && strings.ToLower(task.API) != "desktop" && strings.ToLower(task.API) != "mobile" {
+	if strings.ToLower(task.API) != "desktop" && strings.ToLower(task.API) != "mobile" {
 		return false, fmt.Errorf("API value %s was incorrect", task.API)
+	}
+
+	// "new" category should only be used with mobile
+	if task.Item.Category == "new" && task.API != "mobile" {
+		return false, errors.New("new category can only be used with mobile API")
+	}
+
+	// Task category
+	_, ok := supremeCategoriesDesktop[task.Item.Category]
+	_, ok2 := supremeCategoriesMobile[task.Item.Category]
+	if !ok && !ok2 {
+		return false, errors.New("Task category not found")
+	}
+	// Task keywords
+	if len(task.Item.Keywords) == 0 {
+		return false, errors.New("Task keywords were not provided")
 	}
 
 	return true, nil

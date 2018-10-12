@@ -9,14 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTaskMarshal(t *testing.T) {
-	_, err := json.Marshal(testTask())
-	if err != nil {
-		t.Error("Unable to marshall task")
-	}
-}
-
-func TestFullTaskUnmarhsal(t *testing.T) {
+func TestTaskUnmarhsal(t *testing.T) {
 	s := []byte(`{
 		"taskName": "Task1",
 		"item": {
@@ -58,7 +51,7 @@ func TestFullTaskUnmarhsal(t *testing.T) {
 	}
 }
 
-func TestReadTasks(t *testing.T) {
+func TestReadImportTasksFromJSONFile(t *testing.T) {
 	tasks, err := ImportTasksFromJSON("testdata/validSingleTask.json")
 	if err != nil {
 		t.Error(err)
@@ -211,6 +204,24 @@ func TestVerifyTaskBadAPI(t *testing.T) {
 	task.API = "asdf"
 	valid, err := task.VerifyTask()
 	assert.Equal(t, fmt.Errorf("API value %s was incorrect", task.API), err)
+	assert.False(t, valid)
+}
+
+func TestVerifyTaskValidNewCategory(t *testing.T) {
+	task := testTask()
+	task.API = "mobile"
+	task.Item.Category = "new"
+	valid, err := task.VerifyTask()
+	assert.True(t, valid)
+	assert.Nil(t, err)
+}
+
+func TestVerifyTaskBadNewCategory(t *testing.T) {
+	task := testTask()
+	task.API = "desktop"
+	task.Item.Category = "new"
+	valid, err := task.VerifyTask()
+	assert.Equal(t, errors.New("new category can only be used with mobile API"), err)
 	assert.False(t, valid)
 }
 

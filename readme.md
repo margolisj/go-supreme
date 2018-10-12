@@ -76,10 +76,13 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 ## TODO:
 ### Current
 * Bugs
-  * Add check to make sure new is only with mobile
-  * New category couldn't get item on mobile, is it working?
   * wolf3,1 wolf3,7 - ATC response was empty, should continue to retry, in mobile
   * Add increased checkout retry logic
+* Optimizations
+  * Make desktop and mobile constants
+  * Move any tolower processing to task creation / verification?
+    * See EqualFold - https://www.digitalocean.com/community/questions/how-to-efficiently-compare-strings-in-go
+  * Use pointers more freely
 * Fix mobile for restocks
 * Remove my computers path from errors
 * Unify / pool initial item search
@@ -95,7 +98,7 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * Metrics server
 * Extra security:
   * Have users
-  * Background thrad to periodically validate
+  * Background thread to periodically validate
 * Test if I can add cookie and skip ATC
 * Discord and slack webhook
 * Clean up code and model an interface for mobile and desktop
@@ -172,6 +175,10 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * Review security code - 10/12
   * Add key versioning
   * Add date added
+* Embedded timezone information to get rid of windows timezone bug - 10/12
+* Bugs from 10/11/12 drop
+  * New category couldn't get item on mobile - keyword is "new" not "New"
+  * Add check to make sure new is only with mobile
 
 ## Objectives
 ### 9/20/18
@@ -213,6 +220,7 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * https://godoc.org/github.com/stretchr/testify
 * https://godoc.org/github.com/rs/zerolog
 * https://github.com/goreleaser/goreleaser
+* https://godoc.org/4d63.com/tz
 
 ### Code Examples
 * http://polyglot.ninja/golang-making-http-requests/

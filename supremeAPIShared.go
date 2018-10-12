@@ -30,10 +30,9 @@ var supremeCategoriesMobile = map[string]string{
 	"accessories":   "Accessories",
 	"skate":         "Skate",
 	"shoes":         "Shoes",
-	"new":           "New",
+	"new":           "new",
 }
 
-// TODO: Move any tolower processing to task creation
 func checkKeywords(keywords []string, supremeItemName string) bool {
 	for _, keyword := range keywords {
 		if !strings.Contains(strings.ToLower(supremeItemName), strings.ToLower(keyword)) {

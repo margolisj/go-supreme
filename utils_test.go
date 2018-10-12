@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"4d63.com/tz"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +36,7 @@ func TestRetryJitterSpeed(t *testing.T) {
 func TestReadTimeFromString(t *testing.T) {
 	str := "2018-10-10T14:59:30.000Z"
 	rTime, err := time.Parse(time.RFC3339, str)
-	loc, _ := time.LoadLocation("America/New_York")
+	loc, err := tz.LoadLocation("America/New_York")
 	rTime.In(loc)
 	if err != nil {
 		t.Error(err)
