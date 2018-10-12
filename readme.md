@@ -81,10 +81,6 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * wolf3,1 wolf3,7 - ATC response was empty, should continue to retry, in mobile
   * Add increased checkout retry logic
 * Fix mobile for restocks
-* Review security code
-  * Create my own server
-  * Add key versioning
-  * Add date added
 * Remove my computers path from errors
 * Unify / pool initial item search
 * Add proxy support for each task
@@ -97,6 +93,9 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 
 ### Pipeline
 * Metrics server
+* Extra security:
+  * Have users
+  * Background thrad to periodically validate
 * Test if I can add cookie and skip ATC
 * Discord and slack webhook
 * Clean up code and model an interface for mobile and desktop
@@ -169,6 +168,10 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * Add start time to settings - 10/10
 * Add different API selection to each task - 10/10
 * Add unit tests for mobile API - 10/10
+* Test Amex parsing and make sure that is valid - 10/12
+* Review security code - 10/12
+  * Add key versioning
+  * Add date added
 
 ## Objectives
 ### 9/20/18
@@ -196,11 +199,11 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
     * Rohit - Delay? checkout issue
     * Me - Card declines, delay? checkout issue, google
     * butch - wrong category
-    * wolf - 108 / 
+    * wolf - 108 / 150 taks declined probably because of delays
   * Success
     * Mobile API works?
     * Scheduler works
-
+    * Store credit works
 
 ## Libraries and Code Examples
 
@@ -225,3 +228,4 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * https://github.com/golang/go/wiki/WindowsCrossCompiling
 * https://github.com/StefanSchroeder/Golang-Regex-Tutorial/blob/master/01-chapter2.markdown
 * https://medium.com/@mlowicki/https-proxies-support-in-go-1-10-b956fb501d6b
+* https://github.com/keygen-sh/example-go-program

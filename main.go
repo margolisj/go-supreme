@@ -18,9 +18,9 @@ import (
 
 // Versioning for keygen.sh
 const (
-	account string = "e99bd6f7-900f-4bed-a440-f445fc572fc6"
-	product string = "a7e001f3-3194-4927-88eb-dd37366ab8ed"
-	version string = "0.0.2"
+	keygenAccountID string = "e99bd6f7-900f-4bed-a440-f445fc572fc6"
+	keygenProductID string = "a7e001f3-3194-4927-88eb-dd37366ab8ed"
+	version         string = "0.0.5"
 )
 
 // log is the main logging instance used in this application
@@ -73,8 +73,8 @@ func checkCommandLine() string {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-
 	log = setupLogger()
+	log.Info().Msgf("Application is currently version %s", version)
 
 	// Validation
 	keyIsValid := validateApplication()
@@ -89,7 +89,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Msg("Unable to correctly parse tasks.") // Will call panic
 	}
-	log.Info().Msg("Parsed task files.")
+	log.Info().Msg("Successfully parsed task files.")
 
 	valid, errs := VerifyTasks(&tasks)
 	if !valid {
