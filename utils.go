@@ -55,7 +55,7 @@ func testTask() Task {
 }
 
 // retry will retry any function. Used to retry http requests.
-func retry(attempts int, sleep time.Duration, f func(int) error) error {
+func retry(attempts int64, sleep time.Duration, f func(int64) error) error {
 	if err := f(attempts); err != nil {
 		if s, ok := err.(stop); ok {
 			// Return the original error for later checking

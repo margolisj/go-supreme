@@ -59,7 +59,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	var addURL string
 	var xcsrf string
 	task.UpdateStatus("Going to item page")
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
+	err = retry(10, 10*time.Millisecond, func(attempt int64) error {
 		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
 		var err error
 		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, task, matchedItem.url)
@@ -81,7 +81,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	}
 	// TODO: Figure out if we want ATC to continue to try or fail
 	var atcSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
+	err = retry(10, 10*time.Millisecond, func(attempt int64) error {
 		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
 		var err error
 		atcSuccess, err = AddToCart(session, task, addURL, xcsrf, st, pickedSizeID)
@@ -97,7 +97,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	task.UpdateStatus("Checking out")
 	task.Log().Debug().Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
 	var checkoutSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
+	err = retry(10, 10*time.Millisecond, func(attempt int64) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
 		var err error
 		checkoutSuccess, err = Checkout(session, task, xcsrf)

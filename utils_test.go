@@ -17,7 +17,7 @@ func TestRetryJitterSpeed(t *testing.T) {
 	wg.Add(10)
 	lastAttempt := time.Now()
 
-	retry(10, 50*time.Millisecond, func(attempt int) error {
+	retry(10, 50*time.Millisecond, func(attempt int64) error {
 		defer wg.Done()
 		if !pastFirstRetry {
 			pastFirstRetry = true
@@ -34,8 +34,8 @@ func TestRetryJitterSpeed(t *testing.T) {
 }
 
 func TestRetryWithError(t *testing.T) {
-	var attemptVal int
-	retry(10, 50*time.Millisecond, func(attempt int) error {
+	var attemptVal int64
+	retry(10, 50*time.Millisecond, func(attempt int64) error {
 		attemptVal = attempt
 		return errors.New("")
 	})
