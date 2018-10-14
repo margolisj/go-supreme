@@ -33,6 +33,15 @@ func TestRetryJitterSpeed(t *testing.T) {
 
 }
 
+func TestRetryWithError(t *testing.T) {
+	var attemptVal int
+	retry(10, 50*time.Millisecond, func(attempt int) error {
+		attemptVal = attempt
+		return errors.New("")
+	})
+	assert.Equal(t, 1, attemptVal)
+}
+
 func TestReadTimeFromString(t *testing.T) {
 	str := "2018-10-10T14:59:30.000Z"
 	rTime, err := time.Parse(time.RFC3339, str)

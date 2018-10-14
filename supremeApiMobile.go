@@ -93,7 +93,7 @@ type SizeMobile struct {
 }
 
 // GetSizeInfoMobile gets the size information from the item page
-func GetSizeInfoMobile(session *grequests.Session, task *Task, item SupremeItemMobile) ([]Style, error) {
+func GetSizeInfoMobile(session *grequests.Session, task *Task, item *SupremeItemMobile) (*[]Style, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: mobileUserAgent,
 		Headers: map[string]string{
@@ -116,7 +116,7 @@ func GetSizeInfoMobile(session *grequests.Session, task *Task, item SupremeItemM
 		return nil, errors.New("Error unmarshaling styleResponseMobile")
 	}
 
-	return styleResponse.Styles, nil
+	return &styleResponse.Styles, nil
 }
 
 func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (SupremeItemMobile, error) {
@@ -130,23 +130,23 @@ func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (Suprem
 }
 
 // PickSizeMobile picks a size out of the style list
-func PickSizeMobile(taskItem *taskItem, style *Style) (int, error) {
+func PickSizeMobile(taskItem *taskItem, style *Style) (int, bool, error) {
 	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
 		if len(style.Sizes) != 1 && style.Sizes[0].Name != "N/A" {
-			return 0, errors.New("Unable to pick size, no task size specificed and style not N/A")
+			return 0, false, errors.New("Unable to pick size, no task size specificed and style not N/A")
 		}
-		return style.Sizes[0].ID, nil
+		return style.Sizes[0].ID, style.Sizes[0].StockLevel == 1, nil
 	}
 
 	// Make sure we found sizes on the page before we check them
 	for _, size := range style.Sizes {
 		if strings.ToLower(taskItem.Size) == strings.ToLower(size.Name) {
-			return size.ID, nil
+			return size.ID, size.StockLevel == 1, nil
 		}
 	}
 
-	return 0, errors.New("Unable to pick size, unable to find size in multiple styles")
+	return 0, false, errors.New("Unable to pick size, unable to find size in multiple styles")
 }
 
 type atcResponseMobile []struct {
@@ -181,7 +181,7 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 	task.Log().Debug().Msgf("ATC Response: %s", respString)
 
 	if resp.Ok != true {
-		task.Log().Warn().Msgf("Checkout request did not return OK")
+		task.Log().Warn().Msgf("Checkout request did not return OK: %d", resp.StatusCode)
 		return false, err
 	}
 

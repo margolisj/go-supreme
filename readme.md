@@ -75,21 +75,22 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 
 ## TODO:
 ### Current
-* Bugs
-  * wolf3,1 wolf3,7 - ATC response was empty, should continue to retry, in mobile
-  * Add increased checkout retry logic
+* Add status code to all not okay logs
+* Replace retry int value with int64
+* UK morning tester for keywords via cobra
 * Optimizations
   * Make desktop and mobile constants
   * Move any tolower processing to task creation / verification?
     * See EqualFold - https://www.digitalocean.com/community/questions/how-to-efficiently-compare-strings-in-go
   * Use pointers more freely
-* Fix mobile for restocks
+* Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
 * Remove my computers path from errors
 * Unify / pool initial item search
 * Add proxy support for each task
 * Increased security
   * https://nucleus.sh/docs/sell - For the entire js application
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+    * -s when building
 * Self deleting binary when I want the beta over
 * Figure out how to set this up - http://www.akins.org/posts/vscode-go/
   * https://github.com/alecthomas/gometalinter
@@ -177,8 +178,10 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * Add date added
 * Embedded timezone information to get rid of windows timezone bug - 10/12
 * Bugs from 10/11/12 drop
-  * New category couldn't get item on mobile - keyword is "new" not "New"
-  * Add check to make sure new is only with mobile
+  * New category couldn't get item on mobile - keyword is "new" not "New" - 10/12
+  * Add check to make sure new is only with mobile - 10/12
+  * Add increased checkout retry logic - 10/14
+* Fix mobile for restocks - 10/14
 
 ## Objectives
 ### 9/20/18
@@ -211,6 +214,15 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
     * Mobile API works?
     * Scheduler works
     * Store credit works
+
+## Log Greps
+```
+grep "\"success\": false," logs/10-11-AllLogs/*wolf*/*
+grep "\"success\": true," logs/10-11-AllLogs/*wolf*/*
+grep "declined" logs/10-11-AllLogs/*wolf*/* | wc -l
+grep "declined" logs/10-11-AllLogs/*wolf*/* | wc -l
+grep "Success?" logs/10-11-AllLogs/10-11-mac/* | wc -l
+```
 
 ## Libraries and Code Examples
 
