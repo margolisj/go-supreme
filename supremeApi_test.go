@@ -200,7 +200,7 @@ func TestParseSizesMultipleSizesPickSizes(t *testing.T) {
 
 	for _, tt := range pickTests {
 		t.Run(tt.name, func(t *testing.T) {
-			size, err := PickSize(&tt.in, sizeResponse)
+			size, err := PickSize(&tt.in, &sizeResponse)
 			if err != nil {
 				t.Error(err)
 			}
@@ -219,7 +219,7 @@ func TestPickSizeNoSize(t *testing.T) {
 
 	sizeResponse := SizeResponse{"60885", nil}
 
-	itemID, err := PickSize(&item, sizeResponse)
+	itemID, err := PickSize(&item, &sizeResponse)
 	if err != nil {
 		t.Error(err)
 	}
@@ -240,7 +240,7 @@ func TestPickSizeMultipleSizes(t *testing.T) {
 		"Large":  "59760",
 	}}
 
-	itemID, err := PickSize(&item, sizeResponse)
+	itemID, err := PickSize(&item, &sizeResponse)
 	if err != nil {
 		t.Error(err)
 	}
@@ -257,7 +257,7 @@ func TestPickSizeSingleSizeReturned(t *testing.T) {
 
 	sizeResponse := SizeResponse{"60885", nil}
 
-	itemID, err := PickSize(&item, sizeResponse)
+	itemID, err := PickSize(&item, &sizeResponse)
 	assert.Error(t, err, "Unable to pick size")
 	assert.Equal(t, "", itemID)
 }
@@ -276,7 +276,7 @@ func TestPickSizeMultipleSizesReturnedButNoneInTask(t *testing.T) {
 		"Large":  "59760",
 	}}
 
-	itemID, err := PickSize(&item, sizeResponse)
+	itemID, err := PickSize(&item, &sizeResponse)
 	assert.Error(t, err, "Unable to pick size")
 	assert.Equal(t, "", itemID)
 }

@@ -155,7 +155,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
 		var err error
-		checkoutSuccess, err = CheckoutMobile(session, task, cookieSub)
+		checkoutSuccess, err = CheckoutMobile(session, task, &cookieSub)
 		return err
 	})
 	elapsed := time.Since(startTime)

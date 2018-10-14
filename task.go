@@ -151,7 +151,7 @@ func (task *Task) VerifyTask() (bool, error) {
 	}
 
 	// API
-	if strings.ToLower(task.API) != "desktop" && strings.ToLower(task.API) != "mobile" {
+	if !(strings.EqualFold(task.API, "desktop") || strings.EqualFold(task.API, "mobile")) {
 		return false, fmt.Errorf("API value %s was incorrect", task.API)
 	}
 

@@ -75,31 +75,30 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 
 ## TODO:
 ### Current
-* Replace retry int value with int64
+* Add task specific delays
+* Rever logs to use actual timestamp
 * UK morning tester for keywords via cobra
-* Optimizations
-  * Make desktop and mobile constants
-  * Move any tolower processing to task creation / verification?
-    * See EqualFold - https://www.digitalocean.com/community/questions/how-to-efficiently-compare-strings-in-go
-  * Use pointers more freely
-* Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
-* Remove my computers path from errors
+
 * Unify / pool initial item search
 * Add proxy support for each task
 * Increased security
+  * Remove my computers path from errors
   * https://nucleus.sh/docs/sell - For the entire js application
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
     * -s when building
+* Is there a response that doesn't queue? If not we can get rid of redundant return false logic below
+
+### Pipeline
+* Optimizations
+  * Move any tolower processing to task creation / verification?
+  * Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
 * Self deleting binary when I want the beta over
 * Figure out how to set this up - http://www.akins.org/posts/vscode-go/
   * https://github.com/alecthomas/gometalinter
-
-### Pipeline
 * Metrics server
 * Extra security:
   * Have users
   * Background thread to periodically validate
-* Test if I can add cookie and skip ATC
 * Discord and slack webhook
 * Clean up code and model an interface for mobile and desktop
 * Auto update
@@ -180,8 +179,12 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * New category couldn't get item on mobile - keyword is "new" not "New" - 10/12
   * Add check to make sure new is only with mobile - 10/12
   * Add increased checkout retry logic - 10/14
+* Test if I can add cookie and skip ATC - 10/13
 * Fix mobile for restocks - 10/14
 * Add status code to all not okay logs - 10/14
+* Optimizations - 10/14
+  * use EqualFold for direct comparisons
+  * Use pointers more freely in API
 
 ## Objectives
 ### 9/20/18
@@ -249,3 +252,4 @@ grep "Success?" logs/10-11-AllLogs/10-11-mac/* | wc -l
 * https://github.com/StefanSchroeder/Golang-Regex-Tutorial/blob/master/01-chapter2.markdown
 * https://medium.com/@mlowicki/https-proxies-support-in-go-1-10-b956fb501d6b
 * https://github.com/keygen-sh/example-go-program
+* https://www.digitalocean.com/community/questions/how-to-efficiently-compare-strings-in-go

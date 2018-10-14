@@ -62,7 +62,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
 		var err error
-		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, task, matchedItem.url)
+		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, task, &matchedItem.url)
 		return err
 	})
 	if err != nil {
@@ -74,7 +74,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 
 	// Add the item to cart
 	task.UpdateStatus("Adding item to cart")
-	pickedSizeID, err := PickSize(&task.Item, sizeResponse)
+	pickedSizeID, err := PickSize(&task.Item, &sizeResponse)
 	if err != nil {
 		task.Log().Error().Err(err).Msgf("Unable to pick size")
 		return false, err

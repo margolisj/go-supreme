@@ -90,7 +90,7 @@ func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *[]SupremeItem {
 // GetSizeInfo gets st and size options for an item by going to the item page
 // and retrieving the options from it.
 // itemURLStuffix is in the format "/shop/accessories/jdbpyos48/iimyp2ogd"
-func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix string) (string, SizeResponse, string, string, error) {
+func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix *string) (string, SizeResponse, string, string, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
@@ -101,7 +101,7 @@ func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix string) (
 		},
 	}
 	// Ex. itemURLStuffix = "/shop/accessories/jdbpyos48/iimyp2ogd"
-	itemURL := "https://www.supremenewyork.com" + itemURLSuffix
+	itemURL := "https://www.supremenewyork.com" + *itemURLSuffix
 	resp, err := session.Get(itemURL, &localRo)
 	if err != nil {
 		return "", SizeResponse{}, "", "", err
@@ -161,7 +161,7 @@ func parseSizes(doc *goquery.Document) SizeResponse {
 }
 
 // PickSize picks a size out of the size map
-func PickSize(taskItem *taskItem, sizes SizeResponse) (string, error) {
+func PickSize(taskItem *taskItem, sizes *SizeResponse) (string, error) {
 	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
 		if sizes.singleSizeID == "" {
@@ -173,7 +173,7 @@ func PickSize(taskItem *taskItem, sizes SizeResponse) (string, error) {
 	// Make sure we found sizes on the page before we check them
 	if sizes.multipleSizes != nil {
 		for size, sizeID := range *sizes.multipleSizes {
-			if strings.ToLower(taskItem.Size) == strings.ToLower(size) {
+			if strings.EqualFold(taskItem.Size, size) {
 				return sizeID, nil
 			}
 		}

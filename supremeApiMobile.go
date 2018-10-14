@@ -212,13 +212,13 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 }
 
 // CheckoutMobile checks out with the mobile api
-func CheckoutMobile(session *grequests.Session, task *Task, cookieSub string) (bool, error) {
+func CheckoutMobile(session *grequests.Session, task *Task, cookieSub *string) (bool, error) {
 	account := task.Account
 	// %7B%2259765%22%3A1%7D => {"59765":1}
 	postData := map[string]string{
 		"store_credit_id":          "",
 		"from_mobile":              "1",
-		"cookie-sub":               cookieSub,
+		"cookie-sub":               *cookieSub,
 		"same_as_billing_address":  "1",
 		"order[billing_name]":      account.Person.Firstname + " " + account.Person.Lastname,
 		"order[email]":             account.Person.Email,
@@ -271,8 +271,6 @@ func CheckoutMobile(session *grequests.Session, task *Task, cookieSub string) (b
 		return false, errors.New("Checkout request did not return OK")
 	}
 
-	// TODO: Is there a response that doesn't queue? If not we can get rid of redundant
-	// return false logic below
 	if strings.Contains(respString, "queued") {
 		task.Log().Info().Msg("Queuing.")
 		task.UpdateStatus("Waiting for queue")
