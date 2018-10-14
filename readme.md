@@ -75,7 +75,6 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 
 ## TODO:
 ### Current
-* Add status code to all not okay logs
 * Replace retry int value with int64
 * UK morning tester for keywords via cobra
 * Optimizations
@@ -182,6 +181,7 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * Add check to make sure new is only with mobile - 10/12
   * Add increased checkout retry logic - 10/14
 * Fix mobile for restocks - 10/14
+* Add status code to all not okay logs - 10/14
 
 ## Objectives
 ### 9/20/18

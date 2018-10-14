@@ -53,6 +53,7 @@ func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool
 		return nil, err
 	}
 	if resp.Ok != true {
+		task.Log().Warn().Msgf("GetCollectionItems Request did not return OK: %d", resp.StatusCode)
 		return nil, errors.New("GetCollectionItems request did not return OK")
 	}
 
@@ -106,6 +107,7 @@ func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix string) (
 		return "", SizeResponse{}, "", "", err
 	}
 	if resp.Ok != true {
+		task.Log().Warn().Msgf("GetSizeInfo Request did not return OK: %d", resp.StatusCode)
 		return "", SizeResponse{}, "", "", errors.New("GetSizeInfo request did not return OK")
 	}
 
@@ -215,6 +217,7 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 	if resp.Ok != true {
 		task.Log().Warn().Msgf("%v", resp.RawResponse.Request)
 		task.Log().Warn().Msgf("%v", resp.RawResponse)
+		task.Log().Warn().Msgf("AddToCart Request did not return OK: %d", resp.StatusCode)
 		return false, errors.New("ATC Req did not return OK")
 	}
 	respString := resp.String()
@@ -307,7 +310,7 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 	task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
 
 	if resp.Ok != true {
-		task.Log().Warn().Msgf("Checkout request did not return OK")
+		task.Log().Warn().Msgf("Checkout Request did not return OK: %d", resp.StatusCode)
 		return false, err
 	}
 

@@ -48,12 +48,21 @@ func GetCollectionItemsMobile(session *grequests.Session, task *Task) (*[]Suprem
 		},
 	}
 	resp, err := session.Get("https://www.supremenewyork.com/mobile_stock.json", &localRo)
+	if err != nil {
+		task.Log().Error().Err(err)
+		return nil, errors.New("Error getting mobile stock")
+	}
+	if resp.Ok != true {
+		task.Log().Warn().Msgf("GetCollectionItemsMobile Request did not return OK: %d", resp.StatusCode)
+		return nil, errors.New("GetCollectionItemsMobile request did not return OK")
+	}
 
 	var stock mobileStockResponse
 	err = resp.JSON(&stock)
 	if err != nil {
 		return nil, err
 	}
+
 	targetCategory, ok := supremeCategoriesMobile[task.Item.Category]
 	if !ok {
 		return nil, errors.New("Catgeory was not found in supremeCategoriesMobile")
@@ -104,10 +113,11 @@ func GetSizeInfoMobile(session *grequests.Session, task *Task, item *SupremeItem
 	resp, err := session.Get(fmt.Sprintf("https://www.supremenewyork.com/shop/%d.json", item.id), &localRo)
 	if err != nil {
 		task.Log().Error().Err(err)
-		return nil, errors.New("Error processing mobile Stock")
+		return nil, errors.New("Error during GetSizeInfoMobile")
 	}
 	if resp.Ok != true {
-		return nil, errors.New("GetCollectionItems request did not return OK")
+		task.Log().Warn().Msgf("GetSizeInfoMobile Request did not return OK: %d", resp.StatusCode)
+		return nil, errors.New("GetSizeInfoMobile request did not return OK")
 	}
 
 	var styleResponse mobileStylesResponse
@@ -181,8 +191,8 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 	task.Log().Debug().Msgf("ATC Response: %s", respString)
 
 	if resp.Ok != true {
-		task.Log().Warn().Msgf("Checkout request did not return OK: %d", resp.StatusCode)
-		return false, err
+		task.Log().Warn().Msgf("ATC Request did not return OK: %d", resp.StatusCode)
+		return false, errors.New("ATC request did not return OK")
 	}
 
 	var atcResponse atcResponseMobile
@@ -257,8 +267,8 @@ func CheckoutMobile(session *grequests.Session, task *Task, cookieSub string) (b
 	task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
 
 	if resp.Ok != true {
-		task.Log().Warn().Msgf("Checkout request did not return OK")
-		return false, err
+		task.Log().Warn().Msgf("Checkout request did not return OK: %d", resp.StatusCode)
+		return false, errors.New("Checkout request did not return OK")
 	}
 
 	// TODO: Is there a response that doesn't queue? If not we can get rid of redundant
