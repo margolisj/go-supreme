@@ -132,7 +132,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
 	task.UpdateStatus("Adding item to cart")
 	var atcSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int64) error {
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
 		var err error
 		atcSuccess, err = AddToCartMobile(session, task, matchedItem.id, matchedStyle.ID, pickedSizeID)
@@ -152,7 +152,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	task.UpdateStatus("Checking out")
 	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
 	var checkoutSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int64) error {
+	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
 		var err error
 		checkoutSuccess, err = CheckoutMobile(session, task, cookieSub)

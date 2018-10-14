@@ -75,6 +75,7 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 
 ## TODO:
 ### Current
+* Replace retry int value with int64
 * UK morning tester for keywords via cobra
 * Optimizations
   * Make desktop and mobile constants
@@ -181,7 +182,6 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * Add increased checkout retry logic - 10/14
 * Fix mobile for restocks - 10/14
 * Add status code to all not okay logs - 10/14
-* Replace retry int value with int64 - 10/14
 
 ## Objectives
 ### 9/20/18
