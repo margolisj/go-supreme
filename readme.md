@@ -185,6 +185,10 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * use EqualFold for direct comparisons
   * Use pointers more freely in API
 * Setup logs to use actual timestamp - 10/15
+* Increased security - 10/15
+  * Remove my computers path from errors
+  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+  * -s when building
 
 ## Objectives
 ### 9/20/18
