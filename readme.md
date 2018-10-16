@@ -76,7 +76,6 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 ## TODO:
 ### Current
 * Add task specific delays
-* Rever logs to use actual timestamp
 * UK morning tester for keywords via cobra
 
 * Unify / pool initial item search
@@ -185,6 +184,7 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * Optimizations - 10/14
   * use EqualFold for direct comparisons
   * Use pointers more freely in API
+* Setup logs to use actual timestamp - 10/15
 
 ## Objectives
 ### 9/20/18

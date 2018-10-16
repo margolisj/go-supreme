@@ -84,7 +84,7 @@ func setupLogger() *zerolog.Logger {
 	// UNIX Time is faster and smaller than most timestamps
 	// If you set zerolog.TimeFieldFormat to an empty string,
 	// logs will write with UNIX time
-	zerolog.TimeFieldFormat = ""
+	// zerolog.TimeFieldFormat = ""
 	// Minimum level currently set is debug
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	var logger zerolog.Logger
