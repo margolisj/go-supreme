@@ -34,6 +34,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	session := grequests.NewSession(nil)
 	task.Log().Debug().
 		Str("item", fmt.Sprintf("%+v", task.Item)).
+		Str("waitTimes", fmt.Sprintf("%d %d %d", task.GetTaskRefreshRate(), task.GetTaskAtcWait(), task.GetTaskCheckoutWait())).
 		Msg("Checking out item")
 
 	// Try to find the item provided in keywords etc
@@ -43,13 +44,12 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 		matchedItem, err = waitForItemMatchDesktop(session, task)
 		if err != nil {
 			task.Log().Error().Err(err).
-				Msgf("Error getting collection, sleeping.")
+				Msgf("Error getting collection, sleeping: %dms", task.GetTaskRefreshRate())
 		} else {
 			break
 		}
-		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
+		time.Sleep(time.Duration(task.GetTaskRefreshRate()) * time.Millisecond)
 	}
-	task.UpdateStatus("Found item")
 	task.Log().Debug().Msgf("Found item %+v %s %s %s", matchedItem, matchedItem.color, matchedItem.name, matchedItem.url)
 	startTime := time.Now()
 
@@ -58,7 +58,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	var sizeResponse SizeResponse
 	var addURL string
 	var xcsrf string
-	task.UpdateStatus("Going to item page")
+	task.UpdateStatus("Found. Getting item details")
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
 		var err error
@@ -70,9 +70,11 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 		return false, err
 	}
 	task.Log().Debug().Msgf("%s (%s:%+v) %s %s", st, sizeResponse.singleSizeID, sizeResponse.multipleSizes, addURL, xcsrf)
-	time.Sleep(time.Duration(appSettings.AtcWait) * time.Millisecond)
 
-	// Add the item to cart
+	// ADD TO CART
+	task.Log().Info().
+		Msgf("ATC Wait, sleeping: %dms", task.GetTaskAtcWait())
+	time.Sleep(time.Duration(task.GetTaskAtcWait()) * time.Millisecond)
 	task.UpdateStatus("Adding item to cart")
 	pickedSizeID, err := PickSize(&task.Item, &sizeResponse)
 	if err != nil {
@@ -91,9 +93,12 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	if !atcSuccess {
 		return false, nil
 	}
-	time.Sleep(time.Duration(appSettings.CheckoutWait) * time.Millisecond)
+	task.UpdateStatus("Item Added")
 
-	// Checkout
+	// CHECKOUT
+	task.Log().Info().
+		Msgf("Checkout Wait, sleeping: %dms", task.GetTaskCheckoutWait())
+	time.Sleep(time.Duration(task.GetTaskCheckoutWait()) * time.Millisecond)
 	task.UpdateStatus("Checking out")
 	task.Log().Debug().Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
 	var checkoutSuccess bool
@@ -110,7 +115,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	task.Log().Debug().
 		Float64("timeElapsed", elapsed.Seconds()).
 		Bool("success", checkoutSuccess).
-		Msgf("Supreme checkout completed")
+		Msg("Supreme checkout completed")
 	if checkoutSuccess {
 		task.UpdateStatus("Checked out successfully")
 	} else {

@@ -49,8 +49,8 @@ func waitForStyleMatchMobile(session *grequests.Session, task *Task, matchedItem
 func waitForRestock(session *grequests.Session, task *Task, matchedItem *SupremeItemMobile) int {
 	for {
 		task.Log().Debug().
-			Msgf("Waiting for restock, sleeping %dms.", appSettings.RefreshWait)
-		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
+			Msgf("Waiting for restock, sleeping %dms.", task.GetTaskRefreshRate())
+		time.Sleep(time.Duration(task.GetTaskRefreshRate()) * time.Millisecond)
 
 		matchedStyle, err := waitForStyleMatchMobile(session, task, matchedItem)
 		if err != nil {
@@ -79,6 +79,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	session := grequests.NewSession(nil)
 	task.Log().Debug().
 		Str("item", fmt.Sprintf("%+v", task.Item)).
+		Str("waitTimes", fmt.Sprintf("%d %d %d", task.GetTaskRefreshRate(), task.GetTaskAtcWait(), task.GetTaskCheckoutWait())).
 		Msg("Checking out item")
 
 	// LOOK FOR ITEM
@@ -88,11 +89,11 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 		matchedItem, err = waitForItemMatchMobile(session, task)
 		if err != nil {
 			task.Log().Error().Err(err).
-				Msgf("Error getting collection, sleeping %dms.", appSettings.RefreshWait)
+				Msgf("Error getting collection, sleeping %dms.", task.GetTaskRefreshRate())
 		} else {
 			break
 		}
-		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
+		time.Sleep(time.Duration(task.GetTaskRefreshRate()) * time.Millisecond)
 	}
 	task.UpdateStatus("Found item")
 	task.Log().Debug().Msgf("Found item %+v", matchedItem)
@@ -105,11 +106,11 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 		matchedStyle, err = waitForStyleMatchMobile(session, task, matchedItem)
 		if err != nil {
 			task.Log().Error().Err(err).
-				Msgf("Error matching style, sleeping %dms.", appSettings.RefreshWait)
+				Msgf("Error matching style, sleeping %dms.", task.GetTaskRefreshRate())
 		} else {
 			break
 		}
-		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
+		time.Sleep(time.Duration(task.GetTaskRefreshRate()) * time.Millisecond)
 	}
 	task.UpdateStatus("Matched color / style")
 	task.Log().Debug().Msgf("Matched Style: %+v", matchedStyle)
@@ -128,7 +129,9 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 
 	// ADD TO CART
 	startTime := time.Now()
-	time.Sleep(time.Duration(appSettings.AtcWait) * time.Millisecond)
+	task.Log().Info().
+		Msgf("ATC Wait, sleeping: %dms", task.GetTaskAtcWait())
+	time.Sleep(time.Duration(task.GetTaskAtcWait()) * time.Millisecond)
 	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
 	task.UpdateStatus("Adding item to cart")
 	var atcSuccess bool
@@ -148,7 +151,9 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	// task.Log().Debug().Msgf("%+v", session.HTTPClient.Jar.Cookies(supremeURL))
 
 	// CHECKOUT
-	time.Sleep(time.Duration(appSettings.CheckoutWait) * time.Millisecond)
+	task.Log().Info().
+		Msgf("Checkout, sleeping: %dms", task.GetTaskAtcWait())
+	time.Sleep(time.Duration(task.GetTaskCheckoutWait()) * time.Millisecond)
 	task.UpdateStatus("Checking out")
 	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
 	var checkoutSuccess bool
@@ -165,7 +170,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	task.Log().Debug().
 		Float64("timeElapsed", elapsed.Seconds()).
 		Bool("success", checkoutSuccess).
-		Msgf("Supreme checkout completed")
+		Msg("Supreme checkout completed")
 	if checkoutSuccess {
 		task.UpdateStatus("Checked out successfully")
 	} else {

@@ -38,6 +38,7 @@ func testAccount() Account {
 	return Account{p, a, c}
 }
 
+// testTask is a tester task. It is missing API and refresh rate settings.
 func testTask() Task {
 	item := taskItem{
 		[]string{"shaolin"},
@@ -85,6 +86,7 @@ func setupLogger() *zerolog.Logger {
 	// If you set zerolog.TimeFieldFormat to an empty string,
 	// logs will write with UNIX time
 	// zerolog.TimeFieldFormat = ""
+
 	// Minimum level currently set is debug
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	var logger zerolog.Logger

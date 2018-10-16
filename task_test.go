@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTaskUnmarhsal(t *testing.T) {
+func TestTaskUnmarshal(t *testing.T) {
 	s := []byte(`{
 		"taskName": "Task1",
 		"item": {
@@ -43,12 +43,49 @@ func TestTaskUnmarhsal(t *testing.T) {
 				"cvv": "847"
 			}
 		},
-		"api": "desktop"
+		"api": "desktop",
+		"waitSettings": {
+			"RefreshWait": 1000,
+			"AtcWait": 900,
+			"CheckoutWait": 800
+		}
 	}`)
-	var tas Task
-	if err := json.Unmarshal(s, &tas); err != nil {
+	var task Task
+	if err := json.Unmarshal(s, &task); err != nil {
 		t.Error(err)
 	}
+	assert.Equal(t, "Task1", task.TaskName)
+	assert.Equal(t, taskItem{
+		Keywords: []string{"shaolin"},
+		Category: "hats",
+		Size:     "",
+		Color:    "orange",
+	}, task.Item)
+	assert.Equal(t, Person{
+		Firstname:   "Jax",
+		Lastname:    "Blax",
+		Email:       "none@none.com",
+		PhoneNumber: "215-834-1857",
+	}, task.Account.Person)
+	assert.Equal(t, Address{
+		Address1: "102 Broad Street",
+		Address2: "",
+		Zipcode:  "12345",
+		City:     "Philadeliphia",
+		State:    "PA",
+		Country:  "USA",
+	}, task.Account.Address)
+	assert.Equal(t, Card{
+		Cardtype: "visa",
+		Number:   "1285 4827 5948 2017",
+		Month:    "02",
+		Year:     "2019",
+		Cvv:      "847",
+	}, task.Account.Card)
+	assert.Equal(t, "desktop", task.API)
+	assert.Equal(t, 1000, task.WaitSettings.RefreshWait)
+	assert.Equal(t, 900, task.WaitSettings.AtcWait)
+	assert.Equal(t, 800, task.WaitSettings.CheckoutWait)
 }
 
 func TestReadImportTasksFromJSONFile(t *testing.T) {
@@ -240,6 +277,31 @@ func TestVertifyTasksBad(t *testing.T) {
 	assert.Equal(t, map[int]error{
 		2: errors.New("Credit card number was not correct"),
 	}, errs)
+}
+
+func TestGetRates(t *testing.T) {
+	task := testTask()
+	// These should be equal because the test task is missing waitSettings values
+	assert.Equal(t, appSettings.RefreshWait, task.GetTaskRefreshRate())
+	assert.Equal(t, appSettings.AtcWait, task.GetTaskAtcWait())
+	assert.Equal(t, appSettings.CheckoutWait, task.GetTaskCheckoutWait())
+
+	task.WaitSettings = WaitSettings{
+		RefreshWait: 1000,
+		AtcWait:     900,
+	}
+	assert.Equal(t, 1000, task.GetTaskRefreshRate())
+	assert.Equal(t, 900, task.GetTaskAtcWait())
+
+	task.WaitSettings = WaitSettings{
+		RefreshWait:  343,
+		AtcWait:      0,
+		CheckoutWait: 800,
+	}
+	assert.Equal(t, 343, task.GetTaskRefreshRate())
+	// This should be appSettings.AtcWait because the value of AtcWait is 0
+	assert.Equal(t, appSettings.AtcWait, task.GetTaskAtcWait())
+	assert.Equal(t, 800, task.GetTaskCheckoutWait())
 }
 
 // func TestTaskSupremeCheckoutMobile(t *testing.T) {

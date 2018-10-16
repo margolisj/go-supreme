@@ -55,13 +55,20 @@ type taskItem struct {
 
 // Task is a checkout account and an item(s) to checkout
 type Task struct {
-	TaskName string   `json:"taskName"`
-	Item     taskItem `json:"item"`
-	Account  Account  `json:"account"`
-	API      string   `json:"api"`
-	status   string
-	id       string
-	log      *zerolog.Logger
+	TaskName     string       `json:"taskName"`
+	Item         taskItem     `json:"item"`
+	Account      Account      `json:"account"`
+	API          string       `json:"api"`
+	WaitSettings WaitSettings `json:"waitSettings"`
+	status       string
+	id           string
+	log          *zerolog.Logger
+}
+
+type WaitSettings struct {
+	RefreshWait  int `json:"refreshWait"`
+	AtcWait      int `json:"atcWait"`
+	CheckoutWait int `json:"checkoutWait"`
 }
 
 // ImportTasksFromJSON imports a list of tasks from a json file
@@ -103,6 +110,30 @@ func (task *Task) Log() *zerolog.Logger {
 // SetLog sets the task's logger
 func (task *Task) SetLog(newLogger *zerolog.Logger) {
 	task.log = newLogger
+}
+
+// GetTaskRefreshRate returns application settings if not defined on the task
+func (task *Task) GetTaskRefreshRate() int {
+	if task.WaitSettings.RefreshWait == 0 {
+		return appSettings.RefreshWait
+	}
+	return task.WaitSettings.RefreshWait
+}
+
+// AtcWait returns application settings if not defined on the task
+func (task *Task) GetTaskAtcWait() int {
+	if task.WaitSettings.AtcWait == 0 {
+		return appSettings.AtcWait
+	}
+	return task.WaitSettings.AtcWait
+}
+
+// CheckoutWait returns application settings if not defined on the task
+func (task *Task) GetTaskCheckoutWait() int {
+	if task.WaitSettings.CheckoutWait == 0 {
+		return appSettings.CheckoutWait
+	}
+	return task.WaitSettings.CheckoutWait
 }
 
 // VerifyTask verifies the information provided in the task to make sure it is

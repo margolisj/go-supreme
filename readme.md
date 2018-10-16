@@ -75,7 +75,6 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 
 ## TODO:
 ### Current
-* Add task specific delays
 * UK morning tester for keywords via cobra
 
 * Unify / pool initial item search
@@ -184,6 +183,7 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * Optimizations - 10/14
   * use EqualFold for direct comparisons
   * Use pointers more freely in API
+* Add task specific delays - 10/15
 * Setup logs to use actual timestamp - 10/15
 * Increased security - 10/15
   * Remove my computers path from errors
