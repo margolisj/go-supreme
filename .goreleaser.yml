@@ -2,8 +2,13 @@
 # Make sure to check the documentation at http://goreleaser.com
 project_name: go-supreme
 builds:
-- env:
-  - CGO_ENABLED=0
+-
+  asmflags:
+    - all=-trimpath={{.Env.GOPATH}}
+  gcflags:
+    - all=-trimpath={{.Env.GOPATH}}
+  env:
+    - CGO_ENABLED=0
   goos:
     - linux
     - darwin

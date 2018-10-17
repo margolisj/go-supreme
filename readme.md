@@ -70,33 +70,51 @@ goreleaser --snapshot
 
 ### Build Windows Only
 ```
-GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
+GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 ```
 
 ## TODO:
 ### Current
-* Review security code
-  * Add key versioning
-  * Add date added
-* Unify / pool initial item search
-* Add proxy support for each task
-* Increased security
-  * https://nucleus.sh/docs/sell - For the entire js application
-  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+* UK morning tester for keywords via cobra
 
 ### Pipeline
-* Test if I can add cookie and skip ATC
+* After working version
+  * Add proxy support for each task
+  * Merge use store credit comming
+  * Get rid of redundant return false logic below
+  * Unify / pool initial item search
+* Optimizations
+  * Move any tolower processing to task creation / verification?
+  * Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
+* Self deleting binary when I want the beta over
+* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
+  * https://github.com/alecthomas/gometalinter
+* Metrics server
+* Extra security:
+  * Have users
+  * Background thread to periodically validate
+* Discord and slack webhook
 * Clean up code and model an interface for mobile and desktop
+* Auto update
+  * https://github.com/tj/go-update
+  * https://github.com/inconshreveable/go-update
 * Add any size keyword
 * https://sequencediagram.org/ Diagram calls
-* UI Text
-  * https://github.com/gizak/termui
-  * https://github.com/jroimartin/gocui
-  * https://github.com/gdamore/tcell
-* Full UI Version
-  * Add ability to kill one of these go routines via select statement from either cancel channel
-      * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
-  * Add gcapture code in case they revert
+* UI
+  * UI Text
+    * https://github.com/gizak/termui
+    * https://github.com/jroimartin/gocui
+    * https://github.com/gdamore/tcell
+  * Full UI Version
+    * Electron
+      * https://nucleus.sh/docs/sell - For the entire js application
+    * Add ability to kill one of these go routines via select statement from either cancel channel
+        * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
+    * Add gcapture code in case they revert
+    * https://github.com/murlokswarm/app
+    * https://github.com/asticode/go-astilectron
+    * https://github.com/golang-ui/nuklear
+    * https://github.com/zserge/webview
 * Command line to feed in file different commands
   * https://github.com/spf13/cobra
 * Restock monitor
@@ -149,6 +167,27 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Add start time to settings - 10/10
 * Add different API selection to each task - 10/10
 * Add unit tests for mobile API - 10/10
+* Test Amex parsing and make sure that is valid - 10/12
+* Review security code - 10/12
+  * Add key versioning
+  * Add date added
+* Embedded timezone information to get rid of windows timezone bug - 10/12
+* Bugs from 10/11/12 drop
+  * New category couldn't get item on mobile - keyword is "new" not "New" - 10/12
+  * Add check to make sure new is only with mobile - 10/12
+  * Add increased checkout retry logic - 10/14
+* Test if I can add cookie and skip ATC - 10/13
+* Fix mobile for restocks - 10/14
+* Add status code to all not okay logs - 10/14
+* Optimizations - 10/14
+  * use EqualFold for direct comparisons
+  * Use pointers more freely in API
+* Setup logs to use actual timestamp - 10/15
+* Increased security - 10/15
+  * Remove my computers path from errors
+  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
+  * -s when building
+* Add task specific delays - 10/15
 
 ## Objectives
 ### 9/20/18
@@ -171,7 +210,25 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * Test mobile API
 * Figure out different ATC responses and replace this with grequests
 * Stretch - Test unified search pool
+* Results:
+  * Failed - I believe delays were wrong
+    * Rohit - Delay? checkout issue
+    * Me - Card declines, delay? checkout issue, google
+    * butch - wrong category
+    * wolf - 108 / 150 taks declined probably because of delays
+  * Success
+    * Mobile API works?
+    * Scheduler works
+    * Store credit works
 
+## Log Greps
+```
+grep "\"success\": false," logs/10-11-AllLogs/*wolf*/*
+grep "\"success\": true," logs/10-11-AllLogs/*wolf*/*
+grep "declined" logs/10-11-AllLogs/*wolf*/* | wc -l
+grep "declined" logs/10-11-AllLogs/*wolf*/* | wc -l
+grep "Success?" logs/10-11-AllLogs/10-11-mac/* | wc -l
+```
 
 ## Libraries and Code Examples
 
@@ -181,6 +238,7 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * https://godoc.org/github.com/stretchr/testify
 * https://godoc.org/github.com/rs/zerolog
 * https://github.com/goreleaser/goreleaser
+* https://godoc.org/4d63.com/tz
 
 ### Code Examples
 * http://polyglot.ninja/golang-making-http-requests/
@@ -196,3 +254,5 @@ GOOS=windows GOARCH=386 go build -o supreme-storecredit.exe
 * https://github.com/golang/go/wiki/WindowsCrossCompiling
 * https://github.com/StefanSchroeder/Golang-Regex-Tutorial/blob/master/01-chapter2.markdown
 * https://medium.com/@mlowicki/https-proxies-support-in-go-1-10-b956fb501d6b
+* https://github.com/keygen-sh/example-go-program
+* https://www.digitalocean.com/community/questions/how-to-efficiently-compare-strings-in-go

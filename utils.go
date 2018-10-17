@@ -38,6 +38,7 @@ func testAccount() Account {
 	return Account{p, a, c}
 }
 
+// testTask is a tester task. It is missing API and refresh rate settings.
 func testTask() Task {
 	item := taskItem{
 		[]string{"shaolin"},
@@ -54,7 +55,7 @@ func testTask() Task {
 	}
 }
 
-// retry should retry any function. Used to retry http requests
+// retry will retry any function. Used to retry http requests.
 func retry(attempts int, sleep time.Duration, f func(int) error) error {
 	if err := f(attempts); err != nil {
 		if s, ok := err.(stop); ok {
@@ -84,7 +85,8 @@ func setupLogger() *zerolog.Logger {
 	// UNIX Time is faster and smaller than most timestamps
 	// If you set zerolog.TimeFieldFormat to an empty string,
 	// logs will write with UNIX time
-	zerolog.TimeFieldFormat = ""
+	// zerolog.TimeFieldFormat = ""
+
 	// Minimum level currently set is debug
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	var logger zerolog.Logger

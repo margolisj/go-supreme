@@ -53,6 +53,7 @@ func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool
 		return nil, err
 	}
 	if resp.Ok != true {
+		task.Log().Warn().Msgf("GetCollectionItems Request did not return OK: %d", resp.StatusCode)
 		return nil, errors.New("GetCollectionItems request did not return OK")
 	}
 
@@ -89,7 +90,7 @@ func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *[]SupremeItem {
 // GetSizeInfo gets st and size options for an item by going to the item page
 // and retrieving the options from it.
 // itemURLStuffix is in the format "/shop/accessories/jdbpyos48/iimyp2ogd"
-func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix string) (string, SizeResponse, string, string, error) {
+func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix *string) (string, SizeResponse, string, string, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
 		Headers: map[string]string{
@@ -100,12 +101,13 @@ func GetSizeInfo(session *grequests.Session, task *Task, itemURLSuffix string) (
 		},
 	}
 	// Ex. itemURLStuffix = "/shop/accessories/jdbpyos48/iimyp2ogd"
-	itemURL := "https://www.supremenewyork.com" + itemURLSuffix
+	itemURL := "https://www.supremenewyork.com" + *itemURLSuffix
 	resp, err := session.Get(itemURL, &localRo)
 	if err != nil {
 		return "", SizeResponse{}, "", "", err
 	}
 	if resp.Ok != true {
+		task.Log().Warn().Msgf("GetSizeInfo Request did not return OK: %d", resp.StatusCode)
 		return "", SizeResponse{}, "", "", errors.New("GetSizeInfo request did not return OK")
 	}
 
@@ -159,7 +161,7 @@ func parseSizes(doc *goquery.Document) SizeResponse {
 }
 
 // PickSize picks a size out of the size map
-func PickSize(taskItem *taskItem, sizes SizeResponse) (string, error) {
+func PickSize(taskItem *taskItem, sizes *SizeResponse) (string, error) {
 	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
 		if sizes.singleSizeID == "" {
@@ -171,7 +173,7 @@ func PickSize(taskItem *taskItem, sizes SizeResponse) (string, error) {
 	// Make sure we found sizes on the page before we check them
 	if sizes.multipleSizes != nil {
 		for size, sizeID := range *sizes.multipleSizes {
-			if strings.ToLower(taskItem.Size) == strings.ToLower(size) {
+			if strings.EqualFold(taskItem.Size, size) {
 				return sizeID, nil
 			}
 		}
@@ -215,6 +217,7 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 	if resp.Ok != true {
 		task.Log().Warn().Msgf("%v", resp.RawResponse.Request)
 		task.Log().Warn().Msgf("%v", resp.RawResponse)
+		task.Log().Warn().Msgf("AddToCart Request did not return OK: %d", resp.StatusCode)
 		return false, errors.New("ATC Req did not return OK")
 	}
 	respString := resp.String()
@@ -307,7 +310,7 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 	task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
 
 	if resp.Ok != true {
-		task.Log().Warn().Msgf("Checkout request did not return OK")
+		task.Log().Warn().Msgf("Checkout Request did not return OK: %d", resp.StatusCode)
 		return false, err
 	}
 

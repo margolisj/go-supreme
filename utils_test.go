@@ -2,10 +2,11 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
+
+	"4d63.com/tz"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -32,12 +33,22 @@ func TestRetryJitterSpeed(t *testing.T) {
 
 }
 
-func TestReadTimeFromSTring(t *testing.T) {
+func TestRetryWithError(t *testing.T) {
+	var attemptVal int
+	retry(10, 50*time.Millisecond, func(attempt int) error {
+		attemptVal = attempt
+		return errors.New("")
+	})
+	assert.Equal(t, 1, attemptVal)
+}
+
+func TestReadTimeFromString(t *testing.T) {
 	str := "2018-10-10T14:59:30.000Z"
 	rTime, err := time.Parse(time.RFC3339, str)
-
+	loc, err := tz.LoadLocation("America/New_York")
+	rTime.In(loc)
 	if err != nil {
-		fmt.Println(err)
+		t.Error(err)
 	}
 	t.Log(rTime)
 }

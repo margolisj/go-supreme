@@ -28,6 +28,27 @@ func TestFindSingleItemMobile(t *testing.T) {
 	assert.Equal(t, targetItem, foundItem)
 }
 
+func TestFindSingleItemMobileHeadband(t *testing.T) {
+	taskItem := taskItem{
+		[]string{"headband"},
+		"accessories",
+		"",
+		"red",
+	}
+	targetItem := SupremeItemMobile{
+		"New Era® Big Logo Headband",
+		303674,
+	}
+	supremeItems := []SupremeItemMobile{targetItem}
+
+	foundItem, err := findItemMobile(taskItem, &supremeItems)
+	if err != nil {
+		t.Fail()
+	}
+
+	assert.Equal(t, targetItem, foundItem)
+}
+
 func TestPickSizeMobile(t *testing.T) {
 	item := taskItem{
 		[]string{"temp"},
@@ -49,11 +70,12 @@ func TestPickSizeMobile(t *testing.T) {
 		Sizes: sizes,
 	}
 
-	itemID, err := PickSizeMobile(&item, &style)
+	itemID, isInStock, err := PickSizeMobile(&item, &style)
 	if err != nil {
 		t.Error(err)
 	}
 	assert.Equal(t, 59765, itemID)
+	assert.True(t, isInStock)
 }
 
 func TestPickSizeMobileNoSize(t *testing.T) {
@@ -66,11 +88,30 @@ func TestPickSizeMobileNoSize(t *testing.T) {
 
 	style := Style{ID: 21945, Name: "Navy", Sizes: []SizeMobile{SizeMobile{Name: "N/A", ID: 61615, StockLevel: 0}}}
 
-	itemID, err := PickSizeMobile(&item, &style)
+	itemID, isInStock, err := PickSizeMobile(&item, &style)
 	if err != nil {
 		t.Error(err)
 	}
 	assert.Equal(t, 61615, itemID)
+	assert.False(t, isInStock)
+}
+
+func TestPickSizeMobileNoSizeHeadband(t *testing.T) {
+	item := taskItem{
+		[]string{"temp"},
+		"hats",
+		"",
+		"green",
+	}
+
+	style := Style{ID: 23439, Name: "Dark Green", Sizes: []SizeMobile{SizeMobile{Name: "N/A", ID: 50557, StockLevel: 0}}}
+
+	itemID, isInStock, err := PickSizeMobile(&item, &style)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 50557, itemID)
+	assert.False(t, isInStock)
 }
 
 func TestPickSizeMobileNoTaskSizeIntoSizes(t *testing.T) {
@@ -94,9 +135,10 @@ func TestPickSizeMobileNoTaskSizeIntoSizes(t *testing.T) {
 		Sizes: sizes,
 	}
 
-	itemID, err := PickSizeMobile(&item, &style)
+	itemID, isInstock, err := PickSizeMobile(&item, &style)
 	assert.Equal(t, errors.New("Unable to pick size, no task size specificed and style not N/A"), err)
 	assert.Equal(t, itemID, 0)
+	assert.False(t, isInstock)
 }
 
 func TestPickSizeMobileTaskSizeIntoNoSize(t *testing.T) {
@@ -109,15 +151,16 @@ func TestPickSizeMobileTaskSizeIntoNoSize(t *testing.T) {
 
 	style := Style{ID: 21945, Name: "Navy", Sizes: []SizeMobile{SizeMobile{Name: "N/A", ID: 61615, StockLevel: 0}}}
 
-	itemID, err := PickSizeMobile(&item, &style)
+	itemID, isInStock, err := PickSizeMobile(&item, &style)
 	assert.Equal(t, errors.New("Unable to pick size, unable to find size in multiple styles"), err)
 	assert.Equal(t, itemID, 0)
+	assert.False(t, isInStock)
 }
 
 func TestMultipleSizesPickSizesMobile(t *testing.T) {
 	sizes := []SizeMobile{
 		SizeMobile{Name: "Small", ID: 59764, StockLevel: 1},
-		SizeMobile{Name: "Medium", ID: 59765, StockLevel: 1},
+		SizeMobile{Name: "Medium", ID: 59765, StockLevel: 0},
 		SizeMobile{Name: "Large", ID: 59766, StockLevel: 1},
 		SizeMobile{Name: "XLarge", ID: 59767, StockLevel: 0},
 	}
@@ -129,23 +172,25 @@ func TestMultipleSizesPickSizesMobile(t *testing.T) {
 	}
 
 	pickTests := []struct {
-		name string
-		in   taskItem
-		out  int
+		name      string
+		in        taskItem
+		styleId   int
+		isInStock bool
 	}{
-		{"small", taskItem{Size: "small"}, 59764},
-		{"medium", taskItem{Size: "Medium"}, 59765},
-		{"large", taskItem{Size: "LaRGe"}, 59766},
-		{"xlarge", taskItem{Size: "xLarge"}, 59767},
+		{"small", taskItem{Size: "small"}, 59764, true},
+		{"medium", taskItem{Size: "Medium"}, 59765, false},
+		{"large", taskItem{Size: "LaRGe"}, 59766, true},
+		{"xlarge", taskItem{Size: "xLarge"}, 59767, false},
 	}
 
 	for _, tt := range pickTests {
 		t.Run(tt.name, func(t *testing.T) {
-			size, err := PickSizeMobile(&tt.in, &style)
+			size, isInStock, err := PickSizeMobile(&tt.in, &style)
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Equal(t, tt.out, size)
+			assert.Equal(t, tt.styleId, size)
+			assert.Equal(t, tt.isInStock, isInStock)
 		})
 	}
 }

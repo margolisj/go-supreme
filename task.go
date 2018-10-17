@@ -5,13 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
-	"github.com/levigross/grequests"
 	"github.com/rs/zerolog"
 )
 
@@ -58,13 +55,20 @@ type taskItem struct {
 
 // Task is a checkout account and an item(s) to checkout
 type Task struct {
-	TaskName string   `json:"taskName"`
-	Item     taskItem `json:"item"`
-	Account  Account  `json:"account"`
-	API      string   `json:"api"`
-	status   string
-	id       string
-	log      *zerolog.Logger
+	TaskName     string       `json:"taskName"`
+	Item         taskItem     `json:"item"`
+	Account      Account      `json:"account"`
+	API          string       `json:"api"`
+	WaitSettings WaitSettings `json:"waitSettings"`
+	status       string
+	id           string
+	log          *zerolog.Logger
+}
+
+type WaitSettings struct {
+	RefreshWait  int `json:"refreshWait"`
+	AtcWait      int `json:"atcWait"`
+	CheckoutWait int `json:"checkoutWait"`
 }
 
 // ImportTasksFromJSON imports a list of tasks from a json file
@@ -108,20 +112,33 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 	task.log = newLogger
 }
 
+// GetTaskRefreshRate returns application settings if not defined on the task
+func (task *Task) GetTaskRefreshRate() int {
+	if task.WaitSettings.RefreshWait == 0 {
+		return appSettings.RefreshWait
+	}
+	return task.WaitSettings.RefreshWait
+}
+
+// AtcWait returns application settings if not defined on the task
+func (task *Task) GetTaskAtcWait() int {
+	if task.WaitSettings.AtcWait == 0 {
+		return appSettings.AtcWait
+	}
+	return task.WaitSettings.AtcWait
+}
+
+// CheckoutWait returns application settings if not defined on the task
+func (task *Task) GetTaskCheckoutWait() int {
+	if task.WaitSettings.CheckoutWait == 0 {
+		return appSettings.CheckoutWait
+	}
+	return task.WaitSettings.CheckoutWait
+}
+
 // VerifyTask verifies the information provided in the task to make sure it is
 // what the rest of the application expects
 func (task *Task) VerifyTask() (bool, error) {
-	// Task category
-	_, ok := supremeCategoriesDesktop[task.Item.Category]
-	_, ok2 := supremeCategoriesMobile[task.Item.Category]
-	if !ok && !ok2 {
-		return false, errors.New("Task category not found")
-	}
-	// Task keywords
-	if len(task.Item.Keywords) == 0 {
-		return false, errors.New("Task keywords were not provided")
-	}
-
 	// Email
 	if task.Account.Person.Email == "" {
 		return false, errors.New("Email address field was empty")
@@ -165,8 +182,24 @@ func (task *Task) VerifyTask() (bool, error) {
 	}
 
 	// API
-	if task.API != "" && strings.ToLower(task.API) != "desktop" && strings.ToLower(task.API) != "mobile" {
+	if !(strings.EqualFold(task.API, "desktop") || strings.EqualFold(task.API, "mobile")) {
 		return false, fmt.Errorf("API value %s was incorrect", task.API)
+	}
+
+	// "new" category should only be used with mobile
+	if task.Item.Category == "new" && task.API != "mobile" {
+		return false, errors.New("new category can only be used with mobile API")
+	}
+
+	// Task category
+	_, ok := supremeCategoriesDesktop[task.Item.Category]
+	_, ok2 := supremeCategoriesMobile[task.Item.Category]
+	if !ok && !ok2 {
+		return false, errors.New("Task category not found")
+	}
+	// Task keywords
+	if len(task.Item.Keywords) == 0 {
+		return false, errors.New("Task keywords were not provided")
 	}
 
 	return true, nil
@@ -188,241 +221,4 @@ func VerifyTasks(tasks *[]Task) (bool, map[int]error) {
 		return false, taskErrors
 	}
 	return true, nil
-}
-
-// SupremeCheckoutDesktop attempts to add to cart, waiting until it is available, and item and then check it out, on the desktop API
-func (task *Task) SupremeCheckoutDesktop() (bool, error) {
-	var matchedItem SupremeItem // The item on the supreme site we will buy
-	var err error
-	session := grequests.NewSession(nil)
-	task.Log().Debug().
-		Str("item", fmt.Sprintf("%+v", task.Item)).
-		Msg("Checking out item")
-
-	// Try to find the item provided in keywords etc
-	task.UpdateStatus("Looking for item")
-	for {
-		// Get items in category
-		matchedItem, err = waitForItemMatchDesktop(session, task)
-		if err != nil {
-			task.Log().Error().Err(err).
-				Msgf("Error getting collection, sleeping.")
-		} else {
-			break
-		}
-		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
-	}
-	task.UpdateStatus("Found item")
-	task.Log().Debug().Msgf("Found item %+v %s %s %s", matchedItem, matchedItem.color, matchedItem.name, matchedItem.url)
-	startTime := time.Now()
-
-	// Get the ATC info from the item page
-	var st string
-	var sizeResponse SizeResponse
-	var addURL string
-	var xcsrf string
-	task.UpdateStatus("Going to item page")
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
-		var err error
-		st, sizeResponse, addURL, xcsrf, err = GetSizeInfo(session, task, matchedItem.url)
-		return err
-	})
-	if err != nil {
-		task.Log().Error().Err(err)
-		return false, err
-	}
-	task.Log().Debug().Msgf("%s (%s:%+v) %s %s", st, sizeResponse.singleSizeID, sizeResponse.multipleSizes, addURL, xcsrf)
-	time.Sleep(time.Duration(appSettings.AtcWait) * time.Millisecond)
-
-	// Add the item to cart
-	task.UpdateStatus("Adding item to cart")
-	pickedSizeID, err := PickSize(&task.Item, sizeResponse)
-	if err != nil {
-		task.Log().Error().Err(err).Msgf("Unable to pick size")
-		return false, err
-	}
-	// TODO: Figure out if we want ATC to continue to try or fail
-	var atcSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
-		var err error
-		atcSuccess, err = AddToCart(session, task, addURL, xcsrf, st, pickedSizeID)
-		return err
-	})
-	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
-	if !atcSuccess {
-		return false, nil
-	}
-	time.Sleep(time.Duration(appSettings.CheckoutWait) * time.Millisecond)
-
-	// Checkout
-	task.UpdateStatus("Checking out")
-	task.Log().Debug().Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
-	var checkoutSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
-		var err error
-		checkoutSuccess, err = Checkout(session, task, xcsrf)
-		return err
-	})
-	elapsed := time.Since(startTime)
-
-	task.UpdateStatus("Completed")
-	// Status and send info
-	task.Log().Debug().
-		Float64("timeElapsed", elapsed.Seconds()).
-		Bool("success", checkoutSuccess).
-		Msgf("Supreme checkout completed")
-	if checkoutSuccess {
-		task.UpdateStatus("Checked out successfully")
-	} else {
-		task.UpdateStatus("Checkout failed")
-	}
-
-	return checkoutSuccess, nil
-}
-
-// waitForItemMatchDesktop is a helper function for checkout. It waits until we find an item in the collection.
-func waitForItemMatchDesktop(session *grequests.Session, task *Task) (SupremeItem, error) {
-	supremeItems, err := GetCollectionItems(session, task, true)
-	if err != nil {
-		return SupremeItem{}, errors.New("Error getting collection items")
-	}
-
-	if len(*supremeItems) > 0 {
-		task.Log().Debug().Msgf("Found %d items", len(*supremeItems))
-		matchedItem, err := findItem(task.Item, *supremeItems)
-		if err != nil {
-			return SupremeItem{}, errors.New("Items in collection but unable to find items")
-		}
-		return matchedItem, nil
-	}
-
-	return SupremeItem{}, errors.New("No matches found in collection")
-}
-
-// waitForItemMatchMobile is a helper function for checkout. It waits until we find an item in the collection.
-func waitForItemMatchMobile(session *grequests.Session, task *Task) (SupremeItemMobile, error) {
-	itemsMobile, err := GetCollectionItemsMobile(session, task)
-	if err != nil {
-		return SupremeItemMobile{}, errors.New("Error getting collection items")
-	}
-
-	if len(*itemsMobile) > 0 {
-		matchedItem, err := findItemMobile(task.Item, itemsMobile)
-		if err != nil {
-			return SupremeItemMobile{}, errors.New("Items in collection but unable to find items")
-		}
-		return matchedItem, nil
-	}
-
-	return SupremeItemMobile{}, errors.New("No matches found in collection")
-}
-
-// SupremeCheckoutMobile Completes a checkout on supreme using the mobile API
-func (task *Task) SupremeCheckoutMobile() (bool, error) {
-	var matchedItem SupremeItemMobile // The item on the supreme site we will buy
-	var err error
-	session := grequests.NewSession(nil)
-	task.Log().Debug().
-		Str("item", fmt.Sprintf("%+v", task.Item)).
-		Msg("Checking out item")
-
-		// Try to find the item provided in keywords etc
-	task.UpdateStatus("Looking for item")
-	for {
-		// Get items in category
-		matchedItem, err = waitForItemMatchMobile(session, task)
-		if err != nil {
-			task.Log().Error().Err(err).
-				Msgf("Error getting collection, sleeping.")
-		} else {
-			break
-		}
-		time.Sleep(time.Duration(appSettings.RefreshWait) * time.Millisecond)
-	}
-	task.UpdateStatus("Found item")
-	task.Log().Debug().Msgf("Found item %+v", matchedItem)
-
-	startTime := time.Now()
-	task.UpdateStatus("Getting styles")
-	var styles []Style
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("Getting item info attempt: %d", attempt)
-		var err error
-		styles, err = GetSizeInfoMobile(session, task, matchedItem)
-		return err
-	})
-	if err != nil {
-		task.Log().Error().Err(err)
-		return false, err
-	}
-
-	var matchedStyle Style
-	foundMatchedStyle := false
-	for _, style := range styles {
-		if checkColor(task.Item.Color, style.Name) {
-			matchedStyle = style
-			foundMatchedStyle = true
-			break
-		}
-	}
-
-	if !foundMatchedStyle {
-		task.Log().Error().Msg("Unable to find style")
-		return false, errors.New("Unable to find style")
-	}
-	task.UpdateStatus("Matched style")
-	task.Log().Debug().Msgf("Matched Style: %+v", matchedStyle)
-
-	pickedSizeID, err := PickSizeMobile(&task.Item, &matchedStyle)
-	if err != nil {
-		task.Log().Error().Err(err).Msg("Error picking size")
-	}
-
-	time.Sleep(time.Duration(appSettings.AtcWait) * time.Millisecond)
-	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
-	task.UpdateStatus("Adding item to cart")
-	var atcSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
-		var err error
-		atcSuccess, err = AddToCartMobile(session, task, matchedItem.id, matchedStyle.ID, pickedSizeID)
-		return err
-	})
-	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
-	if !atcSuccess {
-		return false, nil
-	}
-
-	// Purecart implementation instead of building cookie sub our selves
-	// supremeURL, _ := url.Parse("http://www.supremenewyork.com")
-	// task.Log().Debug().Msgf("%+v", session.HTTPClient.Jar.Cookies(supremeURL))
-
-	time.Sleep(time.Duration(appSettings.CheckoutWait) * time.Millisecond)
-	task.UpdateStatus("Checking out")
-	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
-	var checkoutSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
-		var err error
-		checkoutSuccess, err = CheckoutMobile(session, task, cookieSub)
-		return err
-	})
-	elapsed := time.Since(startTime)
-
-	task.UpdateStatus("Completed")
-	// Status and send info
-	task.Log().Debug().
-		Float64("timeElapsed", elapsed.Seconds()).
-		Bool("success", checkoutSuccess).
-		Msgf("Supreme checkout completed")
-	if checkoutSuccess {
-		task.UpdateStatus("Checked out successfully")
-	} else {
-		task.UpdateStatus("Checkout failed")
-	}
-
-	return checkoutSuccess, nil // TODO: Replace with real value
 }

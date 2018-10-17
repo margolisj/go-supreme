@@ -48,12 +48,21 @@ func GetCollectionItemsMobile(session *grequests.Session, task *Task) (*[]Suprem
 		},
 	}
 	resp, err := session.Get("https://www.supremenewyork.com/mobile_stock.json", &localRo)
+	if err != nil {
+		task.Log().Error().Err(err)
+		return nil, errors.New("Error getting mobile stock")
+	}
+	if resp.Ok != true {
+		task.Log().Warn().Msgf("GetCollectionItemsMobile Request did not return OK: %d", resp.StatusCode)
+		return nil, errors.New("GetCollectionItemsMobile request did not return OK")
+	}
 
 	var stock mobileStockResponse
 	err = resp.JSON(&stock)
 	if err != nil {
 		return nil, err
 	}
+
 	targetCategory, ok := supremeCategoriesMobile[task.Item.Category]
 	if !ok {
 		return nil, errors.New("Catgeory was not found in supremeCategoriesMobile")
@@ -93,7 +102,7 @@ type SizeMobile struct {
 }
 
 // GetSizeInfoMobile gets the size information from the item page
-func GetSizeInfoMobile(session *grequests.Session, task *Task, item SupremeItemMobile) ([]Style, error) {
+func GetSizeInfoMobile(session *grequests.Session, task *Task, item *SupremeItemMobile) (*[]Style, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: mobileUserAgent,
 		Headers: map[string]string{
@@ -104,10 +113,11 @@ func GetSizeInfoMobile(session *grequests.Session, task *Task, item SupremeItemM
 	resp, err := session.Get(fmt.Sprintf("https://www.supremenewyork.com/shop/%d.json", item.id), &localRo)
 	if err != nil {
 		task.Log().Error().Err(err)
-		return nil, errors.New("Error processing mobile Stock")
+		return nil, errors.New("Error during GetSizeInfoMobile")
 	}
 	if resp.Ok != true {
-		return nil, errors.New("GetCollectionItems request did not return OK")
+		task.Log().Warn().Msgf("GetSizeInfoMobile Request did not return OK: %d", resp.StatusCode)
+		return nil, errors.New("GetSizeInfoMobile request did not return OK")
 	}
 
 	var styleResponse mobileStylesResponse
@@ -116,7 +126,7 @@ func GetSizeInfoMobile(session *grequests.Session, task *Task, item SupremeItemM
 		return nil, errors.New("Error unmarshaling styleResponseMobile")
 	}
 
-	return styleResponse.Styles, nil
+	return &styleResponse.Styles, nil
 }
 
 func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (SupremeItemMobile, error) {
@@ -130,23 +140,23 @@ func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (Suprem
 }
 
 // PickSizeMobile picks a size out of the style list
-func PickSizeMobile(taskItem *taskItem, style *Style) (int, error) {
+func PickSizeMobile(taskItem *taskItem, style *Style) (int, bool, error) {
 	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
 		if len(style.Sizes) != 1 && style.Sizes[0].Name != "N/A" {
-			return 0, errors.New("Unable to pick size, no task size specificed and style not N/A")
+			return 0, false, errors.New("Unable to pick size, no task size specificed and style not N/A")
 		}
-		return style.Sizes[0].ID, nil
+		return style.Sizes[0].ID, style.Sizes[0].StockLevel == 1, nil
 	}
 
 	// Make sure we found sizes on the page before we check them
 	for _, size := range style.Sizes {
 		if strings.ToLower(taskItem.Size) == strings.ToLower(size.Name) {
-			return size.ID, nil
+			return size.ID, size.StockLevel == 1, nil
 		}
 	}
 
-	return 0, errors.New("Unable to pick size, unable to find size in multiple styles")
+	return 0, false, errors.New("Unable to pick size, unable to find size in multiple styles")
 }
 
 type atcResponseMobile []struct {
@@ -181,8 +191,8 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 	task.Log().Debug().Msgf("ATC Response: %s", respString)
 
 	if resp.Ok != true {
-		task.Log().Warn().Msgf("Checkout request did not return OK")
-		return false, err
+		task.Log().Warn().Msgf("ATC Request did not return OK: %d", resp.StatusCode)
+		return false, errors.New("ATC request did not return OK")
 	}
 
 	var atcResponse atcResponseMobile
@@ -202,13 +212,13 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 }
 
 // CheckoutMobile checks out with the mobile api
-func CheckoutMobile(session *grequests.Session, task *Task, cookieSub string) (bool, error) {
+func CheckoutMobile(session *grequests.Session, task *Task, cookieSub *string) (bool, error) {
 	account := task.Account
 	// %7B%2259765%22%3A1%7D => {"59765":1}
 	postData := map[string]string{
 		"store_credit_id":          "",
 		"from_mobile":              "1",
-		"cookie-sub":               cookieSub,
+		"cookie-sub":               *cookieSub,
 		"same_as_billing_address":  "1",
 		"order[billing_name]":      account.Person.Firstname + " " + account.Person.Lastname,
 		"order[email]":             account.Person.Email,
@@ -257,12 +267,10 @@ func CheckoutMobile(session *grequests.Session, task *Task, cookieSub string) (b
 	task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
 
 	if resp.Ok != true {
-		task.Log().Warn().Msgf("Checkout request did not return OK")
-		return false, err
+		task.Log().Warn().Msgf("Checkout request did not return OK: %d", resp.StatusCode)
+		return false, errors.New("Checkout request did not return OK")
 	}
 
-	// TODO: Is there a response that doesn't queue? If not we can get rid of redundant
-	// return false logic below
 	if strings.Contains(respString, "queued") {
 		task.Log().Info().Msg("Queuing.")
 		task.UpdateStatus("Waiting for queue")
