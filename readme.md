@@ -77,16 +77,12 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 ### Current
 * UK morning tester for keywords via cobra
 
-* Unify / pool initial item search
-* Add proxy support for each task
-* Increased security
-  * Remove my computers path from errors
-  * https://nucleus.sh/docs/sell - For the entire js application
-  * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
-    * -s when building
-* Is there a response that doesn't queue? If not we can get rid of redundant return false logic below
-
 ### Pipeline
+* After working version
+  * Add proxy support for each task
+  * Merge use store credit comming
+  * Get rid of redundant return false logic below
+  * Unify / pool initial item search
 * Optimizations
   * Move any tolower processing to task creation / verification?
   * Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
@@ -104,18 +100,21 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * https://github.com/inconshreveable/go-update
 * Add any size keyword
 * https://sequencediagram.org/ Diagram calls
-* UI Text
-  * https://github.com/gizak/termui
-  * https://github.com/jroimartin/gocui
-  * https://github.com/gdamore/tcell
-* Full UI Version
-  * Add ability to kill one of these go routines via select statement from either cancel channel
-      * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
-  * Add gcapture code in case they revert
-  * https://github.com/murlokswarm/app
-  * https://github.com/asticode/go-astilectron
-  * https://github.com/golang-ui/nuklear
-  * https://github.com/zserge/webview
+* UI
+  * UI Text
+    * https://github.com/gizak/termui
+    * https://github.com/jroimartin/gocui
+    * https://github.com/gdamore/tcell
+  * Full UI Version
+    * Electron
+      * https://nucleus.sh/docs/sell - For the entire js application
+    * Add ability to kill one of these go routines via select statement from either cancel channel
+        * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
+    * Add gcapture code in case they revert
+    * https://github.com/murlokswarm/app
+    * https://github.com/asticode/go-astilectron
+    * https://github.com/golang-ui/nuklear
+    * https://github.com/zserge/webview
 * Command line to feed in file different commands
   * https://github.com/spf13/cobra
 * Restock monitor
@@ -183,12 +182,12 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
 * Optimizations - 10/14
   * use EqualFold for direct comparisons
   * Use pointers more freely in API
-* Add task specific delays - 10/15
 * Setup logs to use actual timestamp - 10/15
 * Increased security - 10/15
   * Remove my computers path from errors
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
   * -s when building
+* Add task specific delays - 10/15
 
 ## Objectives
 ### 9/20/18
