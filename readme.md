@@ -76,6 +76,9 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 ## TODO:
 ### Current
 * UK morning tester for keywords via cobra
+* Metrics server
+* Set policy for keygen for only single copy per key
+* Figure out if new works for mobile
 
 ### Pipeline
 * After working version
@@ -83,16 +86,16 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
   * Merge use store credit comming
   * Get rid of redundant return queue logic and checkout logic
   * Unify / pool initial item search
+  * Look to improve algorithm resilancy
 * Optimizations
   * Move any tolower processing to task creation / verification?
   * Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
 * Self deleting binary when I want the beta over
 * Figure out how to set this up - http://www.akins.org/posts/vscode-go/
   * https://github.com/alecthomas/gometalinter
-* Metrics server
 * Extra security:
-  * Have users
-  * Background thread to periodically validate
+  * Have users with e-mail and password
+  * Background thread to periodically validate a single copy is open
 * Discord and slack webhook
 * Clean up code and model an interface for mobile and desktop
 * Auto update
