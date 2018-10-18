@@ -70,7 +70,7 @@ goreleaser --snapshot
 
 ### Build Windows Only
 ```
-GOOS=windows GOARCH=386 go build -o supreme-windows.exe
+GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/src" -asmflags="-trimpath=$GOPATH/src" -o supreme-windows.exe
 ```
 
 ## TODO:
