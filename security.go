@@ -126,7 +126,7 @@ func validateApplication() bool {
 			valid := validateLicenseKey(inputKey)
 
 			if valid.Valid {
-				log.Error().Msg("Key is valid")
+				log.Info().Msg("Key is valid")
 				err := writeKeyFile(inputKey)
 				if err != nil {
 					log.Error().Msg("Error writing key")

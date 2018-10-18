@@ -2,15 +2,15 @@
 Buys some supreme stuff.
 
 ## Getting Started
-1. Make sure you have a task file somewhere to use on the command line.
-2. Build and go. Pretty easy.
+1. Make sure you have a task file and settings file somewhere to use on the command line.
+2. Build and run.
 ~~~~
 go build
 ./supreme ./pathto/tasks.json ./optionalFilePath/Settings.json
 ~~~~
 
 ### Task Setup
-The task file is plain json.
+The task file is json.
 ```
 [
   {
@@ -63,7 +63,7 @@ The task file is plain json.
 ```
 
 ## Building Versions
-To build different versions you will need to setup goreleaser using brew or some other installer. Then:
+To build different versions you will need to install goreleaser (it is on homebrew). Then Run:
 ~~~~
 goreleaser --snapshot
 ~~~~
@@ -81,7 +81,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 * After working version
   * Add proxy support for each task
   * Merge use store credit comming
-  * Get rid of redundant return false logic below
+  * Get rid of redundant return queue logic and checkout logic
   * Unify / pool initial item search
 * Optimizations
   * Move any tolower processing to task creation / verification?
