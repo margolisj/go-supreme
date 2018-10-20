@@ -84,14 +84,14 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
   * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows
   * Add task name to log output
   * Add API as a log variable and upate log stats file
-* Review other log times
+* Continue Log stats upgrade
   * Look into which wait times were most effective
   * Do some analysis to see what happened with denies
-* Add get time from some source to calculate computer time drift
-* Continue Log stats upgrade
-* Add store credit option to task
 * Get rid of redundant return queue logic and checkout logic
   * Look to improve algorithm resilancy
+* Skp checkout for desktop
+* Add store credit option to task
+* Add get time from some source to calculate computer time drift
 * Beta version of unify / pool initial item search
 * Figure out how to set this up - http://www.akins.org/posts/vscode-go/
   * https://github.com/alecthomas/gometalinter
