@@ -47,7 +47,12 @@ The task file is json.
         "cvv": "789"
       }
     }
-    "api": "mobile"
+    "api": "mobile",
+    "waitSettings": {
+      "refreshWait": 150,
+      "atcWait": 586,
+      "checkoutWait": 776
+    }
   }
 ]
 ```
@@ -62,8 +67,8 @@ The task file is json.
 }
 ```
 
-## Building Versions
-To build different versions you will need to install goreleaser (it is on homebrew). Then Run:
+## Building Multiple OS Targets
+To build different targets you will need to install goreleaser (it is on homebrew). Then Run:
 ~~~~
 goreleaser --snapshot
 ~~~~
@@ -75,33 +80,42 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 
 ## TODO:
 ### Current
-* UK morning tester for keywords via cobra
-* Metrics server
-* Set policy for keygen for only single copy per key
-* Figure out if new works for mobile
-
-### Pipeline
-* After working version
-  * Add proxy support for each task
-  * Merge use store credit comming
-  * Get rid of redundant return queue logic and checkout logic
-  * Unify / pool initial item search
+* Bugs
+  * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows
+  * Add task name to log output
+  * Add API as a log variable and upate log stats file
+* Review other log times
+  * Look into which wait times were most effective
+  * Do some analysis to see what happened with denies
+* Add get time from some source to calculate computer time drift
+* Continue Log stats upgrade
+* Add store credit option to task
+* Get rid of redundant return queue logic and checkout logic
   * Look to improve algorithm resilancy
+* Beta version of unify / pool initial item search
+* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
+  * https://github.com/alecthomas/gometalinter
 * Optimizations
   * Move any tolower processing to task creation / verification?
   * Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
-* Self deleting binary when I want the beta over
-* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
-  * https://github.com/alecthomas/gometalinter
+* Self deleting binary when I want the beta over or some http block
+  * Probably need some sort of check, look more into keygen code
+* Restock monitor
+  * Move API code to library
+
+### Pipeline
+* Metrics server
+* After working version
+  * Set policy for keygen for only single copy per key
+  * Add proxy support for each task
+  * Add any size keyword
 * Extra security:
   * Have users with e-mail and password
   * Background thread to periodically validate a single copy is open
-* Discord and slack webhook
 * Clean up code and model an interface for mobile and desktop
 * Auto update
   * https://github.com/tj/go-update
   * https://github.com/inconshreveable/go-update
-* Add any size keyword
 * https://sequencediagram.org/ Diagram calls
 * UI
   * UI Text
@@ -120,7 +134,6 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * https://github.com/zserge/webview
 * Command line to feed in file different commands
   * https://github.com/spf13/cobra
-* Restock monitor
 
 ### Completed
 * Finish API - 9/19
@@ -191,6 +204,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
   * -s when building
 * Add task specific delays - 10/15
+* Figure out if new works for mobile 10/17
 
 ## Objectives
 ### 9/20/18
@@ -223,6 +237,19 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * Mobile API works?
     * Scheduler works
     * Store credit works
+
+### 10/18/2018
+* Results:
+  * Working tasks and times
+    * 13, mac - 150 786 902 (queued)
+    * 18, mac - 150 792 998 (queued)
+    * 14, windows - 150 645 976 (checkedout and queued)
+    * 1, windows - 150 606 714 (queued)
+  * Bugs:
+    * Queue is incorrect, after the first response there isn't a slug and it should continue with the old slug
+  * Success:
+    * 1 should bag windows, 14
+    * Looks like everything picked up and worked well today
 
 ## Log Greps
 ```
