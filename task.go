@@ -182,7 +182,7 @@ func (task *Task) VerifyTask() (bool, error) {
 	}
 
 	// API
-	if !(strings.EqualFold(task.API, "desktop") || strings.EqualFold(task.API, "mobile")) {
+	if !(strings.EqualFold(task.API, "desktop") || strings.EqualFold(task.API, "mobile") || strings.EqualFold(task.API, "skipMobile")) {
 		return false, fmt.Errorf("API value %s was incorrect", task.API)
 	}
 

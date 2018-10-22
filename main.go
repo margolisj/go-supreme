@@ -154,6 +154,8 @@ func main() {
 				success, err = innerTask.SupremeCheckoutMobile()
 			} else if strings.EqualFold(innerTask.API, "desktop") {
 				success, err = innerTask.SupremeCheckoutDesktop()
+			} else if strings.EqualFold(innerTask.API, "skipMobile") {
+				success, err = innerTask.SupremeCheckoutSkipATCMobile()
 			} else {
 				innerTask.Log().Error().Msgf("Unable to run via API: %s", innerTask.API)
 				return

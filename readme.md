@@ -85,7 +85,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 * Continue Log stats upgrade
   * Look into which wait times were most effective
   * Do some analysis to see what happened with denies
-* Look to improve algorithm recilancy
+* Look to improve algorithm resiliency
 * Skip checkout for desktop
 * Add store credit option to task
 * Add get time from some source to calculate computer time drift
@@ -207,6 +207,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * Add task name to log output - 10/22
     * Add API as a log variable and update log stats file - 10/22
 * Unify redundant return queue logic and checkout logic - 10/21
+* Adds skipATCMobile into full version - 10/22
 
 ## Objectives
 ### 9/20/18
