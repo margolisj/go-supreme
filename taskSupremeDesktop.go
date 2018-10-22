@@ -100,27 +100,42 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 		Msgf("Checkout Wait, sleeping: %dms", task.GetTaskCheckoutWait())
 	time.Sleep(time.Duration(task.GetTaskCheckoutWait()) * time.Millisecond)
 	task.UpdateStatus("Checking out")
-	task.Log().Debug().Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
+	task.Log().Debug().
+		Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
 	var checkoutSuccess bool
+	var queueResponse string
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
 		var err error
-		checkoutSuccess, err = Checkout(session, task, xcsrf)
+		checkoutSuccess, queueResponse, err = Checkout(session, task, xcsrf)
 		return err
 	})
 	elapsed := time.Since(startTime)
-
-	task.UpdateStatus("Completed")
-	// Status and send info
 	task.Log().Debug().
 		Float64("timeElapsed", elapsed.Seconds()).
 		Bool("success", checkoutSuccess).
+		Str("respString", queueResponse).
 		Msg("Supreme checkout completed")
 	if checkoutSuccess {
 		task.UpdateStatus("Checked out successfully")
 	} else {
 		task.UpdateStatus("Checkout failed")
+		return false, err // TODO: Maybe return nil for error
 	}
 
-	return checkoutSuccess, nil
+	// QUEUE
+	task.UpdateStatus("Waiting for queue")
+	var queueSuccess bool
+	queueErr := retry(2, 10*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("Queue attempt: %d", attempt)
+		var err error
+		queueSuccess, err = Queue(session, task, queueResponse)
+		return err
+	})
+	if queueErr != nil {
+		return queueSuccess, queueErr
+	}
+
+	task.UpdateStatus("Completed")
+	return queueSuccess, nil
 }

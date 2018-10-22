@@ -152,30 +152,46 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 
 	// CHECKOUT
 	task.Log().Info().
-		Msgf("Checkout, sleeping: %dms", task.GetTaskAtcWait())
+		Msgf("Checkout Wait, sleeping: %dms", task.GetTaskCheckoutWait())
 	time.Sleep(time.Duration(task.GetTaskCheckoutWait()) * time.Millisecond)
 	task.UpdateStatus("Checking out")
+	task.Log().Debug().
+		Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
 	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
 	var checkoutSuccess bool
+	var queueResponse string
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
 		var err error
-		checkoutSuccess, err = CheckoutMobile(session, task, &cookieSub)
+		checkoutSuccess, queueResponse, err = CheckoutMobile(session, task, &cookieSub)
 		return err
 	})
 	elapsed := time.Since(startTime)
-
-	// Status and send info
-	task.UpdateStatus("Completed")
 	task.Log().Debug().
 		Float64("timeElapsed", elapsed.Seconds()).
 		Bool("success", checkoutSuccess).
+		Str("respString", queueResponse).
 		Msg("Supreme checkout completed")
 	if checkoutSuccess {
 		task.UpdateStatus("Checked out successfully")
 	} else {
 		task.UpdateStatus("Checkout failed")
+		return false, err // TODO: Maybe return nil for error
 	}
 
-	return checkoutSuccess, nil // TODO: Replace with real value
+	// QUEUE
+	task.UpdateStatus("Waiting for queue")
+	var queueSuccess bool
+	queueErr := retry(2, 10*time.Millisecond, func(attempt int) error {
+		task.Log().Debug().Msgf("Queue attempt: %d", attempt)
+		var err error
+		queueSuccess, err = Queue(session, task, queueResponse)
+		return err
+	})
+	if queueErr != nil {
+		return queueSuccess, queueErr
+	}
+
+	task.UpdateStatus("Completed")
+	return queueSuccess, nil
 }
