@@ -81,13 +81,11 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 ## TODO:
 ### Current
 * Bugs
-  * Add task name to log output
-  * Add API as a log variable and update log stats file
   * Make sure checkout retries correctly after decline
 * Continue Log stats upgrade
   * Look into which wait times were most effective
   * Do some analysis to see what happened with denies
-* Look to improve algorithm resilancy
+* Look to improve algorithm recilancy
 * Skip checkout for desktop
 * Add store credit option to task
 * Add get time from some source to calculate computer time drift
@@ -206,6 +204,8 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 * Figure out if new works for mobile 10/17
 * Bugs from 10/18
     * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows - 10/21
+    * Add task name to log output - 10/22
+    * Add API as a log variable and update log stats file - 10/22
 * Unify redundant return queue logic and checkout logic - 10/21
 
 ## Objectives

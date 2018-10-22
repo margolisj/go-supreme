@@ -146,12 +146,17 @@ func main() {
 			innerTask.SetLog(&taskLogger)
 
 			var success bool
-			if strings.ToLower(innerTask.API) == "mobile" {
-				innerTask.Log().Info().Msgf("Starting task on mobile")
+			innerTask.Log().Info().
+				Str("api", innerTask.API).
+				Str("taskName", innerTask.TaskName).
+				Msgf("Starting task")
+			if strings.EqualFold(innerTask.API, "mobile") {
 				success, err = innerTask.SupremeCheckoutMobile()
-			} else {
-				innerTask.Log().Info().Msgf("Starting task on desktop")
+			} else if strings.EqualFold(innerTask.API, "desktop") {
 				success, err = innerTask.SupremeCheckoutDesktop()
+			} else {
+				innerTask.Log().Error().Msgf("Unable to run via API: %s", innerTask.API)
+				return
 			}
 
 			if err != nil {
