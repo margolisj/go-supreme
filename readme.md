@@ -208,6 +208,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * Add API as a log variable and update log stats file - 10/22
 * Unify redundant return queue logic and checkout logic - 10/21
 * Adds skipATCMobile into full version - 10/22
+* Replaces Panic calls with Fatal calls to stop leaking GOPATH - 10/22
 
 ## Objectives
 ### 9/20/18
