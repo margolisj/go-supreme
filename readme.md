@@ -80,27 +80,28 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 
 ## TODO:
 ### Current
-* Bugs
+* Beta version of unify / pool initial item search
+* Add store credit option to task
+
+* Bugs - 10/18
   * Make sure checkout retries correctly after decline
 * Continue Log stats upgrade
   * Look into which wait times were most effective
   * Do some analysis to see what happened with denies
 * Look to improve algorithm resiliency
 * Skip checkout for desktop
-* Add store credit option to task
+* Restock monitor
+  * Move API code to library
+
+### Pipeline
 * Add get time from some source to calculate computer time drift
-* Beta version of unify / pool initial item search
-* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
-  * https://github.com/alecthomas/gometalinter
 * Optimizations
   * Move any tolower processing to task creation / verification?
   * Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
 * Self deleting binary when I want the beta over or some http block
   * Probably need some sort of check, look more into keygen code
-* Restock monitor
-  * Move API code to library
-
-### Pipeline
+* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
+  * https://github.com/alecthomas/gometalinter
 * Metrics server
 * After working version
   * Set policy for keygen for only single copy per key

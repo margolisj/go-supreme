@@ -1,7 +1,7 @@
 **Download**
 ```
-Mac: https://mega.nz/#!fWBnQKrK!V8d6KrZ18BQ-sPhz0Mktns4yd82UMg5wGJBocejzU2Y
-Windows: https://mega.nz/#!HDBDlKia!s7ETygH8Hxf1WhyhV-Dlqdkzb6oRcY9VA_nohhb7n6Y
+Mac: https://mega.nz/#!TL522CpD!_zKQysvwLvdVmGWGl34raIlrSVsrGVtAAcj4rLyhW74
+Windows: https://mega.nz/#!OK42EQJB!j_2sBKfhFtAdtwkLqBLCOcjyK0UhJ2KZIauk2UFSe6A
 ```
 **How to Run**
 In some terminal / command line navigate to the folder with the application is, your settings file and task file should be in the same folder if you want to use the below command.
@@ -13,7 +13,7 @@ The Taskfile is valid json (you can test that with this site https://jsonlint.co
 Currently the card type and taskName field is not used in processing. The taskName field exists so you can add a note to the task. The credit cards must be spaced correctly (Visa / Mastercards: XXXX XXXX XXXX XXXX Amex: XXXX XXXXXX XXXXX). The telephone number must have a dashes between them (584-530-4127).
 Categories: "jackets", "shirts",  "tops/sweaters", "sweatshirts","pants", "t-shirts", "hats", "bags", "shorts", "accessories","skate", "shoes"
 Keywords: are Not CaSe SenSitive
-API: "mobile" or "desktop"
+API: "mobile", "skipMobile" or "desktop"
 ** Settings **
 Settings file is also json:
 ```{

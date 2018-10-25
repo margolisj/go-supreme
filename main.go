@@ -17,11 +17,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Versioning for keygen.sh
+// Versioning and information for keygen.sh
 const (
 	keygenAccountID string = "e99bd6f7-900f-4bed-a440-f445fc572fc6"
 	keygenProductID string = "a7e001f3-3194-4927-88eb-dd37366ab8ed"
-	version         string = "0.0.5"
+	version         string = "0.0.7"
 )
 
 // log is the main logging instance used in this application
