@@ -31,7 +31,7 @@ var supremeCategoriesMobile = map[string]string{
 	"tops/sweaters": "Tops/Sweaters",
 	"sweatshirts":   "Sweatshirts",
 	"pants":         "Pants",
-	"t-shirts":      "T-shirts", // Currently unknown
+	"t-shirts":      "T-Shirts",
 	"hats":          "Hats",
 	"bags":          "Bags",
 	"shorts":        "Shorts",
