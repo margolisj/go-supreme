@@ -212,7 +212,7 @@ func AddToCartMobile(session *grequests.Session, task *Task, ID int, st int, s i
 }
 
 // CheckoutMobile checks out with the mobile api
-func CheckoutMobile(session *grequests.Session, task *Task, cookieSub *string) (bool, error) {
+func CheckoutMobile(session *grequests.Session, task *Task, cookieSub *string) (bool, string, error) {
 	account := task.Account
 	// %7B%2259765%22%3A1%7D => {"59765":1}
 	postData := map[string]string{
@@ -255,7 +255,7 @@ func CheckoutMobile(session *grequests.Session, task *Task, cookieSub *string) (
 
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Checkout Mobile Error")
-		return false, err
+		return false, "", err
 	}
 
 	task.Log().Debug().Msg("----------------RESPONSE----------------")
@@ -268,35 +268,13 @@ func CheckoutMobile(session *grequests.Session, task *Task, cookieSub *string) (
 
 	if resp.Ok != true {
 		task.Log().Warn().Msgf("Checkout request did not return OK: %d", resp.StatusCode)
-		return false, errors.New("Checkout request did not return OK")
+		return false, "", errors.New("Checkout request did not return OK")
 	}
 
-	if strings.Contains(respString, "queued") {
-		task.Log().Info().Msg("Queuing.")
-		task.UpdateStatus("Waiting for queue")
-		queueSuccess, err := queue(task, session, respString)
-		return queueSuccess, err
-	} else if strings.Contains(respString, "failed") {
-		task.Log().Error().
-			Str("reason", "failed").
-			Str("response", respString).
-			Msg("Checkout failed.")
-		return false, nil
-	} else if strings.Contains(respString, "outOfStock") {
-		task.Log().Error().
-			Str("reason", "outOfStock").
-			Str("response", respString).
-			Msg("Checkout failed.")
-		return false, nil
-	} else if strings.Contains(respString, "status\":\"dup") {
-		task.Log().Error().
-			Str("reason", "dup").
-			Str("response", respString).
-			Msg("Checkout failed.")
-		return false, nil
+	checkoutResponse := handleCheckoutResponse(task, &respString)
+	if checkoutResponse {
+		return true, respString, nil
 	}
 
-	// TODO: Figure out what a successful response looks like on desktop and
-	// fix this because currently getting false positives, see
-	return true, nil
+	return false, "", nil
 }

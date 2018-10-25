@@ -2,12 +2,17 @@ package main
 
 import (
 	"errors"
+	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"sync"
 	"testing"
 	"time"
 
 	"4d63.com/tz"
+	"golang.org/x/net/publicsuffix"
 
+	"github.com/levigross/grequests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,3 +57,126 @@ func TestReadTimeFromString(t *testing.T) {
 	}
 	t.Log(rTime)
 }
+
+func TestJarChange(t *testing.T) {
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		t.Error(err)
+	}
+
+	localRo := &grequests.RequestOptions{
+		UserAgent: mobileUserAgent,
+		CookieJar: jar,
+	}
+	localRo2 := &grequests.RequestOptions{
+		UserAgent: mobileUserAgent,
+	}
+	session := *grequests.NewSession(localRo)
+	resp, _ := session.Get("https://httpbin.org/cookies/set/cookie/hungry", localRo2)
+	t.Log(resp)
+	//httpbin.org
+
+	httpbinURL, _ := url.Parse("https://httpbin.org")
+
+	t.Log(jar.Cookies(httpbinURL))
+
+	jar.SetCookies(httpbinURL, []*http.Cookie{
+		&http.Cookie{
+			Domain: "httpbin.org",
+			Name:   "monster",
+			Path:   "/",
+			Value:  "good",
+		},
+	})
+
+	resp, _ = session.Get("https://httpbin.org/cookies", localRo2)
+	t.Log(resp)
+
+}
+
+func TestJarChangeSupreme(t *testing.T) {
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		t.Error(err)
+	}
+
+	session := *grequests.NewSession(&grequests.RequestOptions{
+		CookieJar: jar,
+	})
+
+	task := &Task{
+		Item: taskItem{
+			Keywords: []string{
+				"brieFs",
+				"BoXeR",
+			},
+			Size:     "medium",
+			Color:    "white",
+			Category: "accessories",
+		},
+	}
+
+	AddToCartMobile(&session, task, 171745, 21347, 59765)
+	supURL, _ := url.Parse("http://www.supremenewyork.com")
+	t.Log(jar.Cookies(supURL))
+}
+
+// func TestATCSkipSupreme(t *testing.T) {
+// 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	session := *grequests.NewSession(&grequests.RequestOptions{
+// 		UserAgent: mobileUserAgent,
+// 		CookieJar: jar,
+// 	})
+
+// 	task := testTask()
+// 	task.Item = taskItem{
+// 		Keywords: []string{
+// 			"brieFs",
+// 			"BoXeR",
+// 		},
+// 		Size:     "medium",
+// 		Color:    "white",
+// 		Category: "accessories",
+// 	}
+
+// 	session.Get("https://www.supremenewyork.com/mobile/", nil)
+
+// 	supURLHTTP, _ := url.Parse("http://www.supremenewyork.com")
+// 	supURLHTTPS, _ := url.Parse("https://www.supremenewyork.com")
+// 	t.Log(jar.Cookies(supURLHTTP))
+// 	t.Log(jar.Cookies(supURLHTTPS))
+
+// 	// cart
+// 	// 1+item--59765%2C21347 => 1+item--59765,21347
+// 	cartValue := "1+item--" + url.QueryEscape(fmt.Sprintf("%d,%d", 59765, 21347))
+
+// 	//pure_cart
+// 	// %7B%2259765%22%3A1%7D => {"59765":1}
+// 	pureCartValue := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", 59765))
+
+// 	// cookies := jar.Cookies(supURL)
+// 	jar.SetCookies(supURLHTTP, []*http.Cookie{
+// 		&http.Cookie{
+// 			Domain: "www.supremenewyork.com",
+// 			Name:   "cart",
+// 			Path:   "/",
+// 			Value:  cartValue,
+// 		},
+// 		&http.Cookie{
+// 			Domain: "www.supremenewyork.com",
+// 			Name:   "pure_cart",
+// 			Path:   "/",
+// 			Value:  pureCartValue,
+// 		},
+// 	})
+
+// 	t.Log(jar.Cookies(supURLHTTP))
+// 	t.Log(jar.Cookies(supURLHTTPS))
+// 	success, checkoutResp, err := CheckoutMobile(&session, &task, &pureCartValue)
+
+// 	t.Log(success)
+// 	t.Log(err)
+// }

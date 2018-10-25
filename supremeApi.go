@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/levigross/grequests"
@@ -242,17 +239,8 @@ func findItem(taskItem taskItem, supremeItems []SupremeItem) (SupremeItem, error
 	return SupremeItem{}, errors.New("Unable to match item")
 }
 
-// checkoutJSON the json response provided after check out.
-// This does not capture all the possible checkout response only
-// the response if we need to queue
-type checkoutJSON struct {
-	Status string `json:"status"`
-	Slug   string `json:"slug"`
-	Errors string `json:"errors"`
-}
-
 // Checkout Checks out a task. If there is an issue with
-func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error) {
+func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, string, error) {
 	account := task.Account
 	postData := map[string]string{
 		"utf8":                     "✓",
@@ -298,7 +286,7 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 	resp, err := session.Post("https://www.supremenewyork.com/checkout.json", localRo)
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Checkout Error")
-		return false, err
+		return false, "", err
 	}
 	respString := resp.String()
 
@@ -311,103 +299,13 @@ func Checkout(session *grequests.Session, task *Task, xcsrf string) (bool, error
 
 	if resp.Ok != true {
 		task.Log().Warn().Msgf("Checkout Request did not return OK: %d", resp.StatusCode)
-		return false, err
+		return false, "", err
 	}
 
-	// TODO: Is there a response that doesn't queue? If not we can get rid of redundant
-	// return false logic below
-	if strings.Contains(respString, "queued") {
-		task.Log().Info().Msg("Queuing.")
-		task.UpdateStatus("Waiting for queue")
-		queueSuccess, err := queue(task, session, respString)
-		return queueSuccess, err
-	} else if strings.Contains(respString, "failed") {
-		task.Log().Error().
-			Str("reason", "failed").
-			Str("response", respString).
-			Msg("Checkout failed.")
-		return false, nil
-	} else if strings.Contains(respString, "outOfStock") {
-		task.Log().Error().
-			Str("reason", "outOfStock").
-			Str("response", respString).
-			Msg("Checkout failed.")
-		return false, nil
-	} else if strings.Contains(respString, "status\":\"dup") {
-		task.Log().Error().
-			Str("reason", "dup").
-			Str("response", respString).
-			Msg("Checkout failed.")
-		return false, nil
+	checkoutResponse := handleCheckoutResponse(task, &respString)
+	if checkoutResponse {
+		return true, respString, nil
 	}
 
-	// TODO: Figure out what a successful response looks like on desktop and
-	// fix this because currently getting false positives, see
-	return true, nil
-}
-
-func queue(task *Task, session *grequests.Session, originalRespString string) (bool, error) {
-	var queueJSON checkoutJSON
-	if err := json.Unmarshal([]byte(originalRespString), &queueJSON); err != nil {
-		task.Log().Error().
-			Str("response", originalRespString).
-			Msg("Unable to marshall json in queue")
-		return false, nil
-	}
-
-	task.Log().Debug().Msgf("%+v", queueJSON)
-
-	task.Log().Info().Msg("Sleeping 10 seconds in queue")
-	time.Sleep(10 * time.Second)
-
-	localRo := &grequests.RequestOptions{
-		UserAgent: sharedUserAgent,
-		Headers: map[string]string{
-			"accept":           "application/json",
-			"accept-encoding":  "gzip, deflate, br",
-			"accept-language":  "en-US,en;q=0.9",
-			"origin":           "https://www.supremenewyork.com",
-			"referer":          "https://www.supremenewyork.com/checkout",
-			"x-requested-with": "XMLHttpRequest",
-		},
-	}
-
-	resp, err := session.Get(fmt.Sprintf("https://www.supremenewyork.com/checkout/%s/status.json", queueJSON.Slug), localRo)
-	if err != nil {
-		task.Log().Error().Err(err).Msg("Queue error on update")
-		return false, err
-	}
-
-	if resp.Ok != true {
-		task.Log().Warn().Msg("Queue did not return OK")
-		task.Log().Debug().Msgf("%v", resp.RawResponse.Request)
-		task.Log().Debug().Msgf("%v", resp.RawResponse)
-		return false, errors.New("Queue did not return OK")
-	}
-
-	respString := resp.String()
-	task.Log().Debug().Msgf("%s", respString)
-	task.Log().Debug().Msgf("%v", resp.RawResponse)
-
-	if strings.Contains(respString, "queued") {
-		task.Log().Debug().
-			Str("response", respString).
-			Msg("Queuing again")
-		return queue(task, session, respString)
-	} else if strings.Contains(respString, "failed") {
-		task.Log().Error().
-			Str("reason", "failed").
-			Str("response", respString).
-			Msg("Queue failed")
-		return false, nil
-	} else if strings.Contains(respString, "outOfStock") {
-		task.Log().Error().
-			Str("reason", "outOfStock").
-			Str("response", respString).
-			Msg("Queue failed")
-		return false, nil
-	}
-
-	task.Log().Info().Msg("Queue successful")
-	return true, nil
+	return false, "", nil
 }

@@ -2,15 +2,15 @@
 Buys some supreme stuff.
 
 ## Getting Started
-1. Make sure you have a task file somewhere to use on the command line.
-2. Build and go. Pretty easy.
+1. Make sure you have a task file and settings file somewhere to use on the command line.
+2. Build and run.
 ~~~~
 go build
 ./supreme ./pathto/tasks.json ./optionalFilePath/Settings.json
 ~~~~
 
 ### Task Setup
-The task file is plain json.
+The task file is json.
 ```
 [
   {
@@ -47,7 +47,12 @@ The task file is plain json.
         "cvv": "789"
       }
     }
-    "api": "mobile"
+    "api": "mobile",
+    "waitSettings": {
+      "refreshWait": 150,
+      "atcWait": 586,
+      "checkoutWait": 776
+    }
   }
 ]
 ```
@@ -62,43 +67,52 @@ The task file is plain json.
 }
 ```
 
-## Building Versions
-To build different versions you will need to setup goreleaser using brew or some other installer. Then:
+## Building Multiple OS Targets
+To build different targets you will need to install goreleaser (it is on homebrew). Then Run:
 ~~~~
 goreleaser --snapshot
 ~~~~
 
 ### Build Windows Only
 ```
-GOOS=windows GOARCH=386 go build -o supreme-windows.exe
+GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/src" -asmflags="-trimpath=$GOPATH/src" -o supreme-windows.exe
 ```
 
 ## TODO:
 ### Current
-* UK morning tester for keywords via cobra
-
-### Pipeline
-* After working version
-  * Add proxy support for each task
-  * Merge use store credit comming
-  * Get rid of redundant return false logic below
-  * Unify / pool initial item search
+* Bugs
+  * Make sure checkout retries correctly after decline
+* Continue Log stats upgrade
+  * Look into which wait times were most effective
+  * Do some analysis to see what happened with denies
+* Look to improve algorithm resiliency
+* Skip checkout for desktop
+* Add store credit option to task
+* Add get time from some source to calculate computer time drift
+* Beta version of unify / pool initial item search
+* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
+  * https://github.com/alecthomas/gometalinter
 * Optimizations
   * Move any tolower processing to task creation / verification?
   * Retry function should telescope to ~ 200 ms, add a setting, but still start maybe 20 or 50 ms
-* Self deleting binary when I want the beta over
-* Figure out how to set this up - http://www.akins.org/posts/vscode-go/
-  * https://github.com/alecthomas/gometalinter
+* Self deleting binary when I want the beta over or some http block
+  * Probably need some sort of check, look more into keygen code
+* Restock monitor
+  * Move API code to library
+
+### Pipeline
 * Metrics server
+* After working version
+  * Set policy for keygen for only single copy per key
+  * Add proxy support for each task
+  * Add any size keyword
 * Extra security:
-  * Have users
-  * Background thread to periodically validate
-* Discord and slack webhook
+  * Have users with e-mail and password
+  * Background thread to periodically validate a single copy is open
 * Clean up code and model an interface for mobile and desktop
 * Auto update
   * https://github.com/tj/go-update
   * https://github.com/inconshreveable/go-update
-* Add any size keyword
 * https://sequencediagram.org/ Diagram calls
 * UI
   * UI Text
@@ -117,7 +131,6 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
     * https://github.com/zserge/webview
 * Command line to feed in file different commands
   * https://github.com/spf13/cobra
-* Restock monitor
 
 ### Completed
 * Finish API - 9/19
@@ -188,6 +201,14 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
   * -s when building
 * Add task specific delays - 10/15
+* Figure out if new works for mobile 10/17
+* Bugs from 10/18
+    * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows - 10/21
+    * Add task name to log output - 10/22
+    * Add API as a log variable and update log stats file - 10/22
+* Unify redundant return queue logic and checkout logic - 10/21
+* Adds skipATCMobile into full version - 10/22
+* Replaces Panic calls with Fatal calls to stop leaking GOPATH - 10/22
 
 ## Objectives
 ### 9/20/18
@@ -220,6 +241,19 @@ GOOS=windows GOARCH=386 go build -o supreme-windows.exe
     * Mobile API works?
     * Scheduler works
     * Store credit works
+
+### 10/18/2018
+* Results:
+  * Working tasks and times
+    * 13, mac - 150 786 902 (queued)
+    * 18, mac - 150 792 998 (queued)
+    * 14, windows - 150 645 976 (checkedout and queued)
+    * 1, windows - 150 606 714 (queued)
+  * Bugs:
+    * Queue is incorrect, after the first response there isn't a slug and it should continue with the old slug
+  * Success:
+    * 1 should bag windows, 14
+    * Looks like everything picked up and worked well today
 
 ## Log Greps
 ```

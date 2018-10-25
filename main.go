@@ -46,11 +46,11 @@ var appSettings = applicationSettings{
 func checkCommandLine() string {
 	// Look for task file
 	if len(os.Args) < 2 {
-		log.Panic().Msg("Task File path not specified")
+		log.Fatal().Msg("Task File path not specified")
 	}
 	taskFile := os.Args[1]
 	if _, err := os.Stat(taskFile); os.IsNotExist(err) {
-		log.Panic().Msgf("File does not exist at %s", taskFile)
+		log.Fatal().Msgf("File does not exist at %s", taskFile)
 	}
 
 	// Look for optional settings file
@@ -59,13 +59,13 @@ func checkCommandLine() string {
 		fileBytes, err := ioutil.ReadFile(applicationSettingsFile)
 		if err != nil {
 			log.Error().Msgf("Unable to find applicationSettingsFile %s", applicationSettingsFile)
+		} else {
+			var settings applicationSettings
+			if err := json.Unmarshal(fileBytes, &settings); err != nil {
+				log.Fatal().Msgf("Unable to marshal applicationSettingsFile %s", applicationSettingsFile)
+			}
+			appSettings = settings
 		}
-
-		var settings applicationSettings
-		if err := json.Unmarshal(fileBytes, &settings); err != nil {
-			log.Error().Msgf("Unable to marshal applicationSettingsFile %s", applicationSettingsFile)
-		}
-		appSettings = settings
 	} else {
 		log.Info().Msg("No applications settings were provided")
 	}
@@ -79,7 +79,7 @@ func waitForStart() {
 	if appSettings.StartTime != "" {
 		startTime, err := time.Parse(time.RFC3339, appSettings.StartTime)
 		if err != nil {
-			log.Panic().Err(err).Msg("Unable to parse non-empty time")
+			log.Fatal().Err(err).Msg("Unable to parse non-empty time")
 		}
 		loc, err := tz.LoadLocation("America/New_York")
 		if err != nil {
@@ -91,7 +91,6 @@ func waitForStart() {
 		diff := startTime.Sub(time.Now())
 		log.Info().
 			Msgf("Waiting %f hours and %d minutes until %s", math.Floor(diff.Hours()), int(diff.Minutes())%60, startTime.String())
-
 		// Wait for timer to start
 		startTimer := time.NewTimer(diff)
 		<-startTimer.C
@@ -111,15 +110,14 @@ func main() {
 	// Validation
 	keyIsValid := validateApplication()
 	if !keyIsValid {
-		log.Info().Msg("Key is invalid")
-		os.Exit(1)
+		log.Fatal().Msg("Key is invalid")
 	}
 
 	taskFile := checkCommandLine()
 	log.Info().Msgf("Loading task file: %s", taskFile)
 	tasks, err := ImportTasksFromJSON(taskFile)
 	if err != nil {
-		log.Fatal().Msg("Unable to correctly parse tasks.") // Will call panic
+		log.Fatal().Msg("Unable to correctly parse tasks.")
 	}
 	log.Info().Msg("Successfully parsed task files.")
 
@@ -146,12 +144,19 @@ func main() {
 			innerTask.SetLog(&taskLogger)
 
 			var success bool
-			if strings.ToLower(innerTask.API) == "mobile" {
-				innerTask.Log().Info().Msgf("Starting task on mobile")
+			innerTask.Log().Info().
+				Str("api", innerTask.API).
+				Str("taskName", innerTask.TaskName).
+				Msgf("Starting task")
+			if strings.EqualFold(innerTask.API, "mobile") {
 				success, err = innerTask.SupremeCheckoutMobile()
-			} else {
-				innerTask.Log().Info().Msgf("Starting task on desktop")
+			} else if strings.EqualFold(innerTask.API, "desktop") {
 				success, err = innerTask.SupremeCheckoutDesktop()
+			} else if strings.EqualFold(innerTask.API, "skipMobile") {
+				success, err = innerTask.SupremeCheckoutSkipATCMobile()
+			} else {
+				innerTask.Log().Error().Msgf("Unable to run via API: %s", innerTask.API)
+				return
 			}
 
 			if err != nil {
