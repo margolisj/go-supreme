@@ -246,10 +246,10 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 ### 10/18/2018
 * Results:
   * Working tasks and times
-    * 13, mac - 150 786 902 (queued)
-    * 18, mac - 150 792 998 (queued)
-    * 14, windows - 150 645 976 (checkedout and queued)
-    * 1, windows - 150 606 714 (queued)
+    * 13, mac - desktop, 150 786 902 (queued)
+    * 18, mac - desktop, 150 792 998 (queued)
+    * 14, windows - desktop, 150 645 976 (checkedout and queued)
+    * 1, windows - desktop, 150 606 714 (queued)
   * Bugs:
     * Queue is incorrect, after the first response there isn't a slug and it should continue with the old slug
   * Success:
