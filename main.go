@@ -21,7 +21,7 @@ import (
 const (
 	keygenAccountID string = "e99bd6f7-900f-4bed-a440-f445fc572fc6"
 	keygenProductID string = "a7e001f3-3194-4927-88eb-dd37366ab8ed"
-	version         string = "0.0.7"
+	version         string = "0.0.8"
 )
 
 // log is the main logging instance used in this application
