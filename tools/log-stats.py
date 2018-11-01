@@ -51,12 +51,15 @@ for k, v in d.items():
     if 'Found item' in line['message'] and not 'found' in log_stats:
       log_stats['found'] = line['time']
 
-    if 'Starting task on' in line['message'] and not 'api' in log_stats:
-      log_stats['api'] = line['message'].replace('Starting task on ', '')
+    if 'api' in line and not 'api' in log_stats:
+      log_stats['api'] = line['api']
 
     if 'waitTimes' in line and not 'waitTimes' in log_stats:
       log_stats['waitTimes'] = line['waitTimes']
     
+    if 'success' in line:
+      log_stats['success'] = line['success']
+
   stats[k] = log_stats
 
 with open("./%s/stats.json" % directory, 'w') as f:

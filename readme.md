@@ -256,6 +256,20 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * 1 should bag windows, 14
     * Looks like everything picked up and worked well today
 
+## 10/25/2018
+* Results
+  * 6 Tee Checkouts
+    * 28, windows, psx6 - philly
+    * 40, windows, 5d4k - philly
+    * 34, windows, wxeg - philly
+    * 35, jake, qxdz - frances
+    * 31, windows, vz8s -philly
+    * 30, windows, 57y0 - philly
+  * Still a good number of declines
+  
+
+
+
 ## Log Greps
 ```
 grep "\"success\": false," logs/10-11-AllLogs/*wolf*/*
