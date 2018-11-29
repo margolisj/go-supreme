@@ -80,9 +80,10 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 
 ## TODO:
 ### Current
+* Test go obfuscate on something simple
+* Look to change grequest code with better http transport?
 * Beta version of unify / pool initial item search
 * Add store credit option to task
-
 * Bugs - 10/18
   * Make sure checkout retries correctly after decline
 * Continue Log stats upgrade
@@ -259,15 +260,13 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 ## 10/25/2018
 * Results
   * 6 Tee Checkouts
-    * 28, windows, psx6 - philly
-    * 40, windows, 5d4k - philly
-    * 34, windows, wxeg - philly
+    * 28, windows, psx6 - philly, here
+    * 40, windows, 5d4k - philly, here
+    * 34, windows, wxeg - philly, here
     * 35, jake, qxdz - frances
-    * 31, windows, vz8s -philly
-    * 30, windows, 57y0 - philly
+    * 31, windows, vz8s -philly, here
+    * 30, windows, 57y0 - philly, missing
   * Still a good number of declines
-  
-
 
 
 ## Log Greps

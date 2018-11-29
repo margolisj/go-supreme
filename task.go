@@ -155,7 +155,6 @@ func (task *Task) VerifyTask() (bool, error) {
 	ccAmex, _ := regexp.MatchString(`\d{4} \d{6} \d{5}`, task.Account.Card.Number)
 	if !(ccFour || ccAmex) {
 		return false, errors.New("Credit card number was not correct")
-
 	}
 
 	// CVV
@@ -187,7 +186,7 @@ func (task *Task) VerifyTask() (bool, error) {
 	}
 
 	// "new" category should only be used with mobile
-	if task.Item.Category == "new" && task.API != "mobile" {
+	if task.Item.Category == "new" && !(strings.EqualFold(task.API, "mobile") || strings.EqualFold(task.API, "skipMobile")) {
 		return false, errors.New("new category can only be used with mobile API")
 	}
 

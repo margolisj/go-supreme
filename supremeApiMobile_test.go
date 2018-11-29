@@ -9,10 +9,10 @@ import (
 
 func TestFindSingleItemMobile(t *testing.T) {
 	taskItem := taskItem{
-		[]string{"hanes", "boxer"},
-		"accessories",
-		"Medium",
-		"white",
+		Keywords: []string{"hanes", "boxer"},
+		Category: "accessories",
+		Size:     "Medium",
+		Color:    "white",
 	}
 	targetItem := SupremeItemMobile{
 		"Supreme®/Hanes® Boxer Briefs (4 Pack)",
@@ -30,10 +30,10 @@ func TestFindSingleItemMobile(t *testing.T) {
 
 func TestFindSingleItemMobileHeadband(t *testing.T) {
 	taskItem := taskItem{
-		[]string{"headband"},
-		"accessories",
-		"",
-		"red",
+		Keywords: []string{"headband"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "red",
 	}
 	targetItem := SupremeItemMobile{
 		"New Era® Big Logo Headband",
@@ -51,10 +51,10 @@ func TestFindSingleItemMobileHeadband(t *testing.T) {
 
 func TestPickSizeMobile(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"medium",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	sizes := []SizeMobile{
@@ -80,10 +80,10 @@ func TestPickSizeMobile(t *testing.T) {
 
 func TestPickSizeMobileNoSize(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	style := Style{ID: 21945, Name: "Navy", Sizes: []SizeMobile{SizeMobile{Name: "N/A", ID: 61615, StockLevel: 0}}}
@@ -98,10 +98,10 @@ func TestPickSizeMobileNoSize(t *testing.T) {
 
 func TestPickSizeMobileNoSizeHeadband(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"hats",
-		"",
-		"green",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	style := Style{ID: 23439, Name: "Dark Green", Sizes: []SizeMobile{SizeMobile{Name: "N/A", ID: 50557, StockLevel: 0}}}
@@ -116,10 +116,10 @@ func TestPickSizeMobileNoSizeHeadband(t *testing.T) {
 
 func TestPickSizeMobileNoTaskSizeIntoSizes(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	sizes := []SizeMobile{
@@ -143,10 +143,10 @@ func TestPickSizeMobileNoTaskSizeIntoSizes(t *testing.T) {
 
 func TestPickSizeMobileTaskSizeIntoNoSize(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"medium",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	style := Style{ID: 21945, Name: "Navy", Sizes: []SizeMobile{SizeMobile{Name: "N/A", ID: 61615, StockLevel: 0}}}

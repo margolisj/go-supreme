@@ -12,10 +12,10 @@ import (
 
 func TestFindSingleItem(t *testing.T) {
 	taskItem := taskItem{
-		[]string{"hanes", "boxer"},
-		"accessories",
-		"Medium",
-		"white",
+		Keywords: []string{"hanes", "boxer"},
+		Category: "accessories",
+		Size:     "Medium",
+		Color:    "white",
 	}
 	targetItem := SupremeItem{
 		"Supreme®/Hanes® Boxer Briefs (4 Pack)",
@@ -46,10 +46,10 @@ func TestFindSingleItemFromPageSource(t *testing.T) {
 	supremeItems := parseCategoryPage(doc, true)
 
 	taskItem := taskItem{
-		[]string{"bone"},
-		"jackets",
-		"Medium",
-		"Black",
+		Keywords: []string{"bone"},
+		Category: "jackets",
+		Size:     "Medium",
+		Color:    "Black",
 	}
 
 	foundItem, err := findItem(taskItem, *supremeItems)
@@ -78,10 +78,10 @@ func TestFindSingleItemFromPageSource2(t *testing.T) {
 	supremeItems := parseCategoryPage(doc, false)
 
 	taskItem := taskItem{
-		[]string{""},
-		"sweatshirts",
-		"xlarge",
-		"royal",
+		Keywords: []string{""},
+		Category: "sweatshirts",
+		Size:     "xlarge",
+		Color:    "royal",
 	}
 
 	foundItem, err := findItem(taskItem, *supremeItems)
@@ -211,10 +211,10 @@ func TestParseSizesMultipleSizesPickSizes(t *testing.T) {
 
 func TestPickSizeNoSize(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	sizeResponse := SizeResponse{"60885", nil}
@@ -228,10 +228,10 @@ func TestPickSizeNoSize(t *testing.T) {
 
 func TestPickSizeMultipleSizes(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"Medium",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	sizeResponse := SizeResponse{"", &map[string]string{
@@ -249,10 +249,10 @@ func TestPickSizeMultipleSizes(t *testing.T) {
 
 func TestPickSizeSingleSizeReturned(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"Medium",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	sizeResponse := SizeResponse{"60885", nil}
@@ -264,10 +264,10 @@ func TestPickSizeSingleSizeReturned(t *testing.T) {
 
 func TestPickSizeMultipleSizesReturnedButNoneInTask(t *testing.T) {
 	item := taskItem{
-		[]string{"temp"},
-		"accessories",
-		"",
-		"blue",
+		Keywords: []string{"temp"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "blue",
 	}
 
 	sizeResponse := SizeResponse{"", &map[string]string{
