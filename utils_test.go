@@ -4,17 +4,12 @@ package main
 
 import (
 	"errors"
-	"net/http"
-	"net/http/cookiejar"
-	"net/url"
 	"sync"
 	"testing"
 	"time"
 
 	"4d63.com/tz"
-	"golang.org/x/net/publicsuffix"
 
-	"github.com/levigross/grequests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -60,68 +55,64 @@ func TestReadTimeFromString(t *testing.T) {
 	t.Log(rTime)
 }
 
-func TestJarChange(t *testing.T) {
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
-	if err != nil {
-		t.Error(err)
-	}
+// func TestJarChange(t *testing.T) {
+// 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	localRo := &grequests.RequestOptions{
-		UserAgent: mobileUserAgent,
-		CookieJar: jar,
-	}
-	localRo2 := &grequests.RequestOptions{
-		UserAgent: mobileUserAgent,
-	}
-	session := *grequests.NewSession(localRo)
-	resp, _ := session.Get("https://httpbin.org/cookies/set/cookie/hungry", localRo2)
-	t.Log(resp)
-	//httpbin.org
+// 	localRo := &grequests.RequestOptions{
+// 		UserAgent: mobileUserAgent,
+// 		CookieJar: jar,
+// 	}
+// 	localRo2 := &grequests.RequestOptions{
+// 		UserAgent: mobileUserAgent,
+// 	}
+// 	session := *grequests.NewSession(localRo)
+// 	resp, _ := session.Get("https://httpbin.org/cookies/set/cookie/hungry", localRo2)
 
-	httpbinURL, _ := url.Parse("https://httpbin.org")
+// 	httpbinURL, _ := url.Parse("https://httpbin.org")
 
-	t.Log(jar.Cookies(httpbinURL))
+// 	jar.SetCookies(httpbinURL, []*http.Cookie{
+// 		&http.Cookie{
+// 			Domain: "httpbin.org",
+// 			Name:   "monster",
+// 			Path:   "/",
+// 			Value:  "good",
+// 		},
+// 	})
 
-	jar.SetCookies(httpbinURL, []*http.Cookie{
-		&http.Cookie{
-			Domain: "httpbin.org",
-			Name:   "monster",
-			Path:   "/",
-			Value:  "good",
-		},
-	})
+// 	resp, _ = session.Get("https://httpbin.org/cookies", localRo2)
+// 	t.Log()
+// 	t.Log(resp)
+// }
 
-	resp, _ = session.Get("https://httpbin.org/cookies", localRo2)
-	t.Log(resp)
+// func TestJarChangeSupreme(t *testing.T) {
+// 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-}
+// 	session := *grequests.NewSession(&grequests.RequestOptions{
+// 		CookieJar: jar,
+// 	})
 
-func TestJarChangeSupreme(t *testing.T) {
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
-	if err != nil {
-		t.Error(err)
-	}
+// 	task := &Task{
+// 		Item: taskItem{
+// 			Keywords: []string{
+// 				"brieFs",
+// 				"BoXeR",
+// 			},
+// 			Size:     "medium",
+// 			Color:    "white",
+// 			Category: "accessories",
+// 		},
+// 	}
 
-	session := *grequests.NewSession(&grequests.RequestOptions{
-		CookieJar: jar,
-	})
-
-	task := &Task{
-		Item: taskItem{
-			Keywords: []string{
-				"brieFs",
-				"BoXeR",
-			},
-			Size:     "medium",
-			Color:    "white",
-			Category: "accessories",
-		},
-	}
-
-	AddToCartMobile(&session, task, 171745, 21347, 59765)
-	supURL, _ := url.Parse("http://www.supremenewyork.com")
-	t.Log(jar.Cookies(supURL))
-}
+// 	AddToCartMobile(&session, task, 171745, 21347, 59765)
+// 	supURL, _ := url.Parse("http://www.supremenewyork.com")
+// 	t.Log(jar.Cookies(supURL))
+// }
 
 // func TestATCSkipSupreme(t *testing.T) {
 // 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
@@ -182,79 +173,3 @@ func TestJarChangeSupreme(t *testing.T) {
 // 	t.Log(success)
 // 	t.Log(err)
 // }
-
-func TestUKKeywords(t *testing.T) {
-	items := []taskItem{
-		taskItem{
-			Keywords: []string{
-				"trust",
-				"killer",
-			},
-			Size:     "medium",
-			Color:    "white",
-			Category: "t-shirts",
-		},
-		taskItem{
-			Keywords: []string{
-				"trust",
-				"killer",
-			},
-			Size:     "medium",
-			Color:    "heather grey",
-			Category: "t-shirts",
-		},
-		taskItem{
-			Keywords: []string{
-				"L/S",
-				"killer",
-			},
-			Size:     "medium",
-			Color:    "white",
-			Category: "t-shirts",
-		},
-	}
-
-	task := testTask()
-	proxyString := "81.130.135.142:48057"
-	proxyURL, err := url.Parse("http://" + proxyString) // Proxy URL
-	if err != nil {
-		t.Error(err)
-	}
-
-	localRo := &grequests.RequestOptions{
-		UserAgent: mobileUserAgent,
-		Proxies: map[string]*url.URL{
-			"http":  proxyURL,
-			"https": proxyURL,
-		},
-	}
-
-	session := *grequests.NewSession(localRo)
-	tresp, _ := session.Get("https://api.ipify.org?format=json", nil)
-	t.Logf("Current IP: %s", tresp.String())
-
-	for k, item := range items {
-		task.Item = item
-		itemMobile, err := waitForItemMatchMobile(&session, &task)
-		if err != nil {
-			t.Logf("Item %d keyword couldn't be found", k)
-		} else {
-			t.Logf("Item %d keyword was found: %+v", k, itemMobile)
-		}
-
-		style, err := waitForStyleMatchMobile(&session, &task, itemMobile)
-		if err != nil {
-			t.Logf("Item %d couldn't be found style / color", k)
-		} else {
-			t.Logf("Item %d was found style / color: %+v", k, style)
-		}
-
-		ID, _, err := PickSizeMobile(&task.Item, style)
-		if err != nil {
-			t.Logf("Item %d couldn't be found size", k)
-		} else {
-			t.Logf("Item %d was found size: %d", k, ID)
-		}
-
-	}
-}
