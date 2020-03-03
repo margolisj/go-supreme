@@ -176,7 +176,7 @@ func TestMultipleSizesPickSizesMobile(t *testing.T) {
 	pickTests := []struct {
 		name      string
 		in        taskItem
-		styleId   int
+		styleID   int
 		isInStock bool
 	}{
 		{"small", taskItem{Size: "small"}, 59764, true},
@@ -191,7 +191,7 @@ func TestMultipleSizesPickSizesMobile(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Equal(t, tt.styleId, size)
+			assert.Equal(t, tt.styleID, size)
 			assert.Equal(t, tt.isInStock, isInStock)
 		})
 	}
