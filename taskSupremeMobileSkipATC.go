@@ -11,8 +11,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// SupremeCheckoutSkipATCMobile Completes a checkout on supreme using the mobile API
-func (task *Task) SupremeCheckoutSkipATCMobile() (bool, error) {
+// SupremeCheckoutMobileSkipATC Completes a checkout on supreme using the mobile API
+func (task *Task) SupremeCheckoutMobileSkipATC() (bool, error) {
 	var matchedItem *SupremeItemMobile // The item on the supreme site we will buy
 	var err error
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
