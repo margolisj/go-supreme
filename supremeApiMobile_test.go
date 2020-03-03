@@ -55,7 +55,7 @@ func TestPickSizeMobile(t *testing.T) {
 	item := taskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
-		Size:     "",
+		Size:     "Medium",
 		Color:    "blue",
 	}
 
@@ -147,7 +147,7 @@ func TestPickSizeMobileTaskSizeIntoNoSize(t *testing.T) {
 	item := taskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
-		Size:     "",
+		Size:     "Medium",
 		Color:    "blue",
 	}
 
