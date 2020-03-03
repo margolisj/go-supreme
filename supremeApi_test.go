@@ -1,3 +1,5 @@
+// +build unit
+
 package main
 
 import (
@@ -117,6 +119,7 @@ func TestParseCategoryPage(t *testing.T) {
 		"/shop/jackets/m2ihxzpus/wq798ar2h",
 	}, item)
 }
+
 func TestParseEmptyCategoryPage(t *testing.T) {
 	f, err := os.Open("./testData/supremeSite/9-29-18-jackets-empty.html")
 	if err != nil {
