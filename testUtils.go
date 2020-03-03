@@ -1,5 +1,13 @@
 package main
 
+import (
+	"net/http/cookiejar"
+	"testing"
+
+	"github.com/levigross/grequests"
+	"golang.org/x/net/publicsuffix"
+)
+
 func testAccount() Account {
 	p := Person{
 		"Jax",
@@ -43,4 +51,16 @@ func testTask() Task {
 		Account:  testAccount(),
 		API:      "mobile",
 	}
+}
+
+func buildTestSession(t *testing.T) *grequests.Session {
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		t.Error(err)
+	}
+
+	session := grequests.NewSession(&grequests.RequestOptions{
+		CookieJar: jar,
+	})
+	return session
 }
