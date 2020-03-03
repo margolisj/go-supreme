@@ -1,3 +1,5 @@
+// +build unit
+
 package main
 
 import (
@@ -33,39 +35,7 @@ func TestFindSingleItem(t *testing.T) {
 }
 
 func TestFindSingleItemFromPageSource(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/9-25-18-jackets.html")
-	if err != nil {
-		t.Error(err)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(f)
-	if err != nil {
-		t.Error(err)
-	}
-
-	supremeItems := parseCategoryPage(doc, true)
-
-	taskItem := taskItem{
-		Keywords: []string{"bone"},
-		Category: "jackets",
-		Size:     "Medium",
-		Color:    "Black",
-	}
-
-	foundItem, err := findItem(taskItem, *supremeItems)
-
-	if err != nil {
-		t.Fail()
-	}
-	assert.Equal(t, SupremeItem{
-		name:  "Bone Varsity Jacket",
-		color: "Black",
-		url:   "/shop/jackets/m2ihxzpus/wq798ar2h",
-	}, foundItem)
-}
-
-func TestFindSingleItemFromPageSource2(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/10-4-18-sweatshirts.html")
+	f, err := os.Open("./testData/supremeSite/3-3-2020-desktop-accessories.html")
 	if err != nil {
 		t.Error(err)
 	}
@@ -76,12 +46,13 @@ func TestFindSingleItemFromPageSource2(t *testing.T) {
 	}
 
 	supremeItems := parseCategoryPage(doc, false)
+	assert.Equal(t, 17, len(*supremeItems))
 
 	taskItem := taskItem{
-		Keywords: []string{""},
-		Category: "sweatshirts",
-		Size:     "xlarge",
-		Color:    "royal",
+		Keywords: []string{"Plate"},
+		Category: "accessories",
+		Size:     "",
+		Color:    "Gold",
 	}
 
 	foundItem, err := findItem(taskItem, *supremeItems)
@@ -90,33 +61,13 @@ func TestFindSingleItemFromPageSource2(t *testing.T) {
 		t.Fail()
 	}
 	assert.Equal(t, SupremeItem{
-		name:  "Cat in the Hat Hooded Sweatshirt",
-		color: "Bright Royal",
-		url:   "/shop/sweatshirts/sym03qn9v/cshfnxl84",
+		name:  "Name Plate 14K Gold Pendant",
+		color: "Gold",
+		url:   "/shop/accessories/zzxnomh1w/ue59f7gvh",
 	}, foundItem)
 }
 
-func TestParseCategoryPage(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/9-25-18-jackets.html")
-	if err != nil {
-		t.Error(err)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(f)
-	if err != nil {
-		t.Error(err)
-	}
-
-	items := parseCategoryPage(doc, true)
-	assert.Equal(t, 10, len(*items))
-
-	item := (*items)[0]
-	assert.Equal(t, SupremeItem{
-		"Bone Varsity Jacket",
-		"Black",
-		"/shop/jackets/m2ihxzpus/wq798ar2h",
-	}, item)
-}
+// TODO: Replace this with an updated empty desktop category
 func TestParseEmptyCategoryPage(t *testing.T) {
 	f, err := os.Open("./testData/supremeSite/9-29-18-jackets-empty.html")
 	if err != nil {
@@ -230,7 +181,7 @@ func TestPickSizeMultipleSizes(t *testing.T) {
 	item := taskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
-		Size:     "",
+		Size:     "Medium",
 		Color:    "blue",
 	}
 
@@ -251,7 +202,7 @@ func TestPickSizeSingleSizeReturned(t *testing.T) {
 	item := taskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
-		Size:     "",
+		Size:     "Medium",
 		Color:    "blue",
 	}
 

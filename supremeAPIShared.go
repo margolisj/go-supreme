@@ -111,6 +111,7 @@ type checkoutJSON struct {
 	Errors string `json:"errors"`
 }
 
+// Queue handles the queue response and finished the checkout
 func Queue(session *grequests.Session, task *Task, originalRespString string) (bool, error) {
 	var queueJSON checkoutJSON
 	if err := json.Unmarshal([]byte(originalRespString), &queueJSON); err != nil {

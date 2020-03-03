@@ -65,6 +65,7 @@ type Task struct {
 	log          *zerolog.Logger
 }
 
+// WaitSettings are the setting used in the bot for waiting
 type WaitSettings struct {
 	RefreshWait  int `json:"refreshWait"`
 	AtcWait      int `json:"atcWait"`
@@ -120,7 +121,7 @@ func (task *Task) GetTaskRefreshRate() int {
 	return task.WaitSettings.RefreshWait
 }
 
-// AtcWait returns application settings if not defined on the task
+// GetTaskAtcWait returns application settings if not defined on the task
 func (task *Task) GetTaskAtcWait() int {
 	if task.WaitSettings.AtcWait == 0 {
 		return appSettings.AtcWait
@@ -128,7 +129,7 @@ func (task *Task) GetTaskAtcWait() int {
 	return task.WaitSettings.AtcWait
 }
 
-// CheckoutWait returns application settings if not defined on the task
+// GetTaskCheckoutWait returns application settings if not defined on the task
 func (task *Task) GetTaskCheckoutWait() int {
 	if task.WaitSettings.CheckoutWait == 0 {
 		return appSettings.CheckoutWait

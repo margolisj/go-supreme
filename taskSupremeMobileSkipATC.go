@@ -11,8 +11,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// SupremeCheckoutMobile Completes a checkout on supreme using the mobile API
-func (task *Task) SupremeCheckoutSkipATCMobile() (bool, error) {
+// SupremeCheckoutMobileSkipATC Completes a checkout on supreme using the mobile API
+func (task *Task) SupremeCheckoutMobileSkipATC() (bool, error) {
 	var matchedItem *SupremeItemMobile // The item on the supreme site we will buy
 	var err error
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
@@ -67,7 +67,7 @@ func (task *Task) SupremeCheckoutSkipATCMobile() (bool, error) {
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Error picking size")
 	}
-	// WAIT FOR RESTOCK IF NOT INSTOCK
+	// WAIT FOR RESTOCK IF NOT IN STOCK
 	if !isInStock {
 		task.Log().Info().Msg("Item is not in stock, waiting for restock")
 		task.status = "Waiting for restock"

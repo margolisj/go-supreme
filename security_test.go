@@ -1,3 +1,5 @@
+// +build unit
+
 package main
 
 import (
@@ -7,11 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidKey(t *testing.T) {
-	// Tester licnese
-	validation := validateLicenseKey("1234-1234-1234-1234")
-	assert.True(t, validation.Valid)
-}
+// func TestValidKey(t *testing.T) {
+// 	// Tester licnese
+// 	validation := validateLicenseKey("1234-1234-1234-1234")
+// 	assert.True(t, validation.Valid)
+// }
 
 func TestUnmarshalV0Key(t *testing.T) {
 	keyText := []byte(`{"key":"1234-1234-1234-1234"}`)

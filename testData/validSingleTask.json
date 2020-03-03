@@ -1,36 +1,36 @@
 [
-  {
-    "taskName": "shopsafe 0 0RU3",
-    "item": {
-      "keywords": [
-        "liquid"
-      ],
-      "size": "Small",
-      "color": "black",
-      "category": "t-shirts"
-    },
-    "account": {
-      "person": {
-        "firstname": "Jax",
-        "lastname": "Blax",
-        "email": "none+0RU3@gmail.com",
-        "phoneNumber": "610-143-9568"
-      },
-      "address": {
-        "address1": "0RU3 123 HoneySuckle Ave",
-        "address2": "",
-        "zipcode": "19103",
-        "city": "Pittsburg",
-        "state": "PA",
-        "country": "USA"
-      },
-      "card": {
-        "cardtype": "visa",
-        "number": "1234 2541 2154 2154",
-        "month": "09",
-        "year": "2022",
-        "cvv": "789"
-      }
+    {
+        "taskName": "shopsafe 0 0RU3",
+        "item": {
+            "keywords": [
+                "liquid"
+            ],
+            "size": "Small",
+            "color": "black",
+            "category": "t-shirts"
+        },
+        "account": {
+            "person": {
+                "firstname": "Jax",
+                "lastname": "Blax",
+                "email": "none+0RU3@gmail.com",
+                "phoneNumber": "610-143-9568"
+            },
+            "address": {
+                "address1": "0RU3 123 HoneySuckle Ave",
+                "address2": "",
+                "zipcode": "19103",
+                "city": "Pittsburg",
+                "state": "PA",
+                "country": "USA"
+            },
+            "card": {
+                "cardtype": "visa",
+                "number": "1234 2541 2154 2154",
+                "month": "09",
+                "year": "2022",
+                "cvv": "789"
+            }
+        }
     }
-  }
 ]

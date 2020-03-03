@@ -80,21 +80,25 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 
 ## TODO:
 ### Current
-* Test go obfuscate on something simple
+* Fix checkout for mobile and desktop
+* Replace checkout waiting with total time from ATC to make sure we are above X ms
 * Look to change grequest code with better http transport?
+  * Change http transport to have a bigger pool
 * Beta version of unify / pool initial item search
-* Add store credit option to task
 * Bugs - 10/18
   * Make sure checkout retries correctly after decline
-* Continue Log stats upgrade
-  * Look into which wait times were most effective
-  * Do some analysis to see what happened with denies
-* Look to improve algorithm resiliency
-* Skip checkout for desktop
 * Restock monitor
   * Move API code to library
 
 ### Pipeline
+* Test go obfuscate on something simple / check on stripping linking
+* Look to improve algorithm resiliency
+* Skip ATC
+  * Testing Current Viability
+  * Implementations:
+    * Desktop
+    * Mobile
+* Add store credit option to task
 * Add get time from some source to calculate computer time drift
 * Optimizations
   * Move any tolower processing to task creation / verification?
@@ -135,82 +139,83 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
   * https://github.com/spf13/cobra
 
 ### Completed
-* Finish API - 9/19
-  * Finish queuing, see js version - 9/19
-* Add worker pool - 9/20
-* Add task importing - 9/20
-* Create task generator in json - 9/20 (in python)
-* Add better waiting functionality - 9/20
-* Attempt to purge credentials from old commits - 9/23
-* Clean up testing - 9/23
-* Add go module system - 9/23
-* Add better logging - 9/23
-* Fix weird task struct formatting - 9/24
-  * Update go code - 9/24
-  * Update python code - 9/24
-* Add a verify task function - 9/24
-* Add better retrying - 9/24
-* Fixed bug that only selected medium size - 9/24
-* Fixed code to allow for selecting single size items - 9/24
-* Supreme API HTML source Tests - Look for st and s on product page - 9/24
-* Supreme API HTML source Tests - Look for articles on page - 9/26
-* Bugs - 9/29
+* Finish API - 9/19/18
+  * Finish queuing, see js version - 9/19/18
+* Add worker pool - 9/20/18
+* Add task importing - 9/20/18
+* Create task generator in json - 9/20/18 (in python)
+* Add better waiting functionality - 9/20/18
+* Attempt to purge credentials from old commits - 9/23/18
+* Clean up testing - 9/23/18
+* Add go module system - 9/23/18
+* Add better logging - 9/23/18
+* Fix weird task struct formatting - 9/24/18
+  * Update go code - 9/24/18
+  * Update python code - 9/24/18
+* Add a verify task function - 9/24/18
+* Add better retrying - 9/24/18
+* Fixed bug that only selected medium size - 9/24/18
+* Fixed code to allow for selecting single size items - 9/24/18
+* Supreme API HTML source Tests - Look for st and s on product page - 9/24/18
+* Supreme API HTML source Tests - Look for articles on page - 9/26/18
+* Bugs - 9/29/18
   * Bug when category is incorrect, empty category but was unable to advance - Fixed the pick sizing algo but not sure how it happened
   * Apparent checkout bug, unicode issue when printing out return string - Issue was trying to checkout when wasn't in cart
   * Bug when no size is specified but it is a sized item - Same as first bug listed
-* Replace logging with: https://github.com/rs/zerolog - 9/29
-* Figure out how much time jitter adds to retry, we probably want this kept to a minimum - 9/29
-* Task Update: - 10/2
+* Replace logging with: https://github.com/rs/zerolog - 9/29/18
+* Figure out how much time jitter adds to retry, we probably want this kept to a minimum - 9/29/18
+* Task Update: - 10/2/18
   * Add and use task Id in logging
   * Set task status during everything
   * Move checkout make it work off task log instead of with ID int
-* Add support to generate multiple binaries - 10/2
-* Go over with spell check - 10/2
-* Settings support for different checkout sleep speeds via settings file - 10/2
-* Add Licensing and Server Authentication - 10/3
-* Add map of all categories - 10/3
-* Update log-stats to use taskID and command line - 10/4
-* Bug fixes - 10/4
+* Add support to generate multiple binaries - 10/2/18
+* Go over with spell check - 10/2/18
+* Settings support for different checkout sleep speeds via settings file - 10/2/18
+* Add Licensing and Server Authentication - 10/3/18
+* Add map of all categories - 10/3/18
+* Update log-stats to use taskID and command line - 10/4/18
+* Bug fixes - 10/4/18
   * Fix unlabled logging that should be there
   * Add log to print item information
   * If ATC is false should kill task
   * Add validity check for items and other fields
-* Add Mobile API - 10/6
-  * Figure out if mobile can also skip captcha - 10/6
-* Finish task SupremeMobileCheckout - 10/9
-* Add scheduling for start - 10/9
-* Add start time to settings - 10/10
-* Add different API selection to each task - 10/10
-* Add unit tests for mobile API - 10/10
-* Test Amex parsing and make sure that is valid - 10/12
-* Review security code - 10/12
+* Add Mobile API - 10/6/18
+  * Figure out if mobile can also skip captcha - 10/6/18
+* Finish task SupremeMobileCheckout - 10/9/18
+* Add scheduling for start - 10/9/18
+* Add start time to settings - 10/10/18
+* Add different API selection to each task - 10/10/18
+* Add unit tests for mobile API - 10/10/18
+* Test Amex parsing and make sure that is valid - 10/12/18
+* Review security code - 10/12/18
   * Add key versioning
   * Add date added
-* Embedded timezone information to get rid of windows timezone bug - 10/12
+* Embedded timezone information to get rid of windows timezone bug - 10/12/18
 * Bugs from 10/11/12 drop
-  * New category couldn't get item on mobile - keyword is "new" not "New" - 10/12
-  * Add check to make sure new is only with mobile - 10/12
-  * Add increased checkout retry logic - 10/14
-* Test if I can add cookie and skip ATC - 10/13
-* Fix mobile for restocks - 10/14
-* Add status code to all not okay logs - 10/14
-* Optimizations - 10/14
+  * New category couldn't get item on mobile - keyword is "new" not "New" - 10/12/18
+  * Add check to make sure new is only with mobile - 10/12/18
+  * Add increased checkout retry logic - 10/14/18
+* Test if I can add cookie and skip ATC - 10/13/18
+* Fix mobile for restocks - 10/14/18
+* Add status code to all not okay logs - 10/14/18
+* Optimizations - 10/14/18
   * use EqualFold for direct comparisons
   * Use pointers more freely in API
-* Setup logs to use actual timestamp - 10/15
-* Increased security - 10/15
+* Setup logs to use actual timestamp - 10/15/18
+* Increased security - 10/15/18
   * Remove my computers path from errors
   * https://stackoverflow.com/questions/25062696/what-about-protection-for-golang-source-code
   * -s when building
-* Add task specific delays - 10/15
-* Figure out if new works for mobile 10/17
-* Bugs from 10/18
-    * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows - 10/21
-    * Add task name to log output - 10/22
-    * Add API as a log variable and update log stats file - 10/22
-* Unify redundant return queue logic and checkout logic - 10/21
-* Adds skipATCMobile into full version - 10/22
-* Replaces Panic calls with Fatal calls to stop leaking GOPATH - 10/22
+* Add task specific delays - 10/15/18
+* Figure out if new works for mobile 10/17/18
+* Bugs from 10/18/18
+    * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows - 10/21/18
+    * Add task name to log output - 10/22/18
+    * Add API as a log variable and update log stats file - 10/22/18
+* Unify redundant return queue logic and checkout logic - 10/21/18
+* Adds skipATCMobile into full version - 10/22/18
+* Replaces Panic calls with Fatal calls to stop leaking GOPATH - 10/22/18
+* Updates tests, removes dead code, removes previous security and fixed desktop item identification - 3/2/20
 
 ## Objectives
 ### 9/20/18

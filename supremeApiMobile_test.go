@@ -1,3 +1,5 @@
+// +build unit
+
 package main
 
 import (
@@ -53,7 +55,7 @@ func TestPickSizeMobile(t *testing.T) {
 	item := taskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
-		Size:     "",
+		Size:     "Medium",
 		Color:    "blue",
 	}
 
@@ -145,7 +147,7 @@ func TestPickSizeMobileTaskSizeIntoNoSize(t *testing.T) {
 	item := taskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
-		Size:     "",
+		Size:     "Medium",
 		Color:    "blue",
 	}
 
@@ -174,7 +176,7 @@ func TestMultipleSizesPickSizesMobile(t *testing.T) {
 	pickTests := []struct {
 		name      string
 		in        taskItem
-		styleId   int
+		styleID   int
 		isInStock bool
 	}{
 		{"small", taskItem{Size: "small"}, 59764, true},
@@ -189,7 +191,7 @@ func TestMultipleSizesPickSizesMobile(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Equal(t, tt.styleId, size)
+			assert.Equal(t, tt.styleID, size)
 			assert.Equal(t, tt.isInStock, isInStock)
 		})
 	}
