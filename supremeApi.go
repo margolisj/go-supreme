@@ -31,7 +31,7 @@ skate -> https://www.supremenewyork.com/shop/all/skate
 */
 
 // GetCollectionItems Gets the items from a specific category. If inStockOnly is true then
-// the function will only return instock items.
+// the function will only return in stock items.
 func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool) (*[]SupremeItem, error) {
 	localRo := grequests.RequestOptions{
 		UserAgent: sharedUserAgent,
