@@ -39,7 +39,7 @@ var appSettings = applicationSettings{
 	"",
 	300,
 	800,
-	800,
+	4500,
 }
 
 // checkCommandLine looks at the command line arguments for the task and optional settings file
@@ -108,10 +108,10 @@ func main() {
 	log.Info().Msgf("Application is currently version %s", version)
 
 	// Validation
-	keyIsValid := validateApplication()
-	if !keyIsValid {
-		log.Fatal().Msg("Key is invalid")
-	}
+	// keyIsValid := validateApplication()
+	// if !keyIsValid {
+	// 	log.Fatal().Msg("Key is invalid")
+	// }
 
 	taskFile := checkCommandLine()
 	log.Info().Msgf("Loading task file: %s", taskFile)
