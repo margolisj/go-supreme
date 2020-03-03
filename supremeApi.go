@@ -62,6 +62,7 @@ func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool
 	}
 	items := parseCategoryPage(doc, inStockOnly)
 	task.Log().Debug().Msgf("Items Found: %d in category %s", len(*items), task.Item.Category)
+	task.Log().Debug().Msgf("%+v", *items)
 
 	return items, nil
 }
@@ -69,15 +70,19 @@ func GetCollectionItems(session *grequests.Session, task *Task, inStockOnly bool
 func parseCategoryPage(doc *goquery.Document, inStockOnly bool) *[]SupremeItem {
 	var items []SupremeItem
 	doc.Find(".inner-article").Each(func(i int, s *goquery.Selection) {
+
 		// First check sold out status
 		soldOut := s.Find("a .sold_out_tag").Size() != 0
 		if inStockOnly && soldOut { // Ignore soldout items
 			return
 		}
-		nameSelector := s.Find("h1 .name-link")
+		nameSelector := s.Find(".product-name")
 		name := nameSelector.Text()
-		url, _ := nameSelector.Attr("href")
-		color := s.Find("p .name-link").Text()
+
+		variantSelector := s.Find(".product-style .name-link")
+		color := variantSelector.Text()
+		url, _ := variantSelector.Attr("href")
+
 		items = append(items, SupremeItem{name, color, url})
 	})
 
