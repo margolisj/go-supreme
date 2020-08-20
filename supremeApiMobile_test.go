@@ -10,7 +10,7 @@ import (
 )
 
 func TestFindSingleItemMobile(t *testing.T) {
-	taskItem := taskItem{
+	taskItem := TaskItem{
 		Keywords: []string{"hanes", "boxer"},
 		Category: "accessories",
 		Size:     "Medium",
@@ -31,7 +31,7 @@ func TestFindSingleItemMobile(t *testing.T) {
 }
 
 func TestFindSingleItemMobileHeadband(t *testing.T) {
-	taskItem := taskItem{
+	taskItem := TaskItem{
 		Keywords: []string{"headband"},
 		Category: "accessories",
 		Size:     "",
@@ -52,7 +52,7 @@ func TestFindSingleItemMobileHeadband(t *testing.T) {
 }
 
 func TestPickSizeMobile(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "Medium",
@@ -81,7 +81,7 @@ func TestPickSizeMobile(t *testing.T) {
 }
 
 func TestPickSizeMobileNoSize(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "",
@@ -99,7 +99,7 @@ func TestPickSizeMobileNoSize(t *testing.T) {
 }
 
 func TestPickSizeMobileNoSizeHeadband(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "",
@@ -117,7 +117,7 @@ func TestPickSizeMobileNoSizeHeadband(t *testing.T) {
 }
 
 func TestPickSizeMobileNoTaskSizeIntoSizes(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "",
@@ -144,7 +144,7 @@ func TestPickSizeMobileNoTaskSizeIntoSizes(t *testing.T) {
 }
 
 func TestPickSizeMobileTaskSizeIntoNoSize(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "Medium",
@@ -179,10 +179,10 @@ func TestMultipleSizesPickSizesMobile(t *testing.T) {
 		styleID   int
 		isInStock bool
 	}{
-		{"small", taskItem{Size: "small"}, 59764, true},
-		{"medium", taskItem{Size: "Medium"}, 59765, false},
-		{"large", taskItem{Size: "LaRGe"}, 59766, true},
-		{"xlarge", taskItem{Size: "xLarge"}, 59767, false},
+		{"small", TaskItem{Size: "small"}, 59764, true},
+		{"medium", TaskItem{Size: "Medium"}, 59765, false},
+		{"large", TaskItem{Size: "LaRGe"}, 59766, true},
+		{"xlarge", TaskItem{Size: "xLarge"}, 59767, false},
 	}
 
 	for _, tt := range pickTests {

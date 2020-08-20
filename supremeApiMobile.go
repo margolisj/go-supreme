@@ -129,7 +129,7 @@ func GetSizeInfoMobile(session *grequests.Session, task *Task, item *SupremeItem
 	return &styleResponse.Styles, nil
 }
 
-func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (SupremeItemMobile, error) {
+func findItemMobile(taskItem TaskItem, itemsMobile *[]SupremeItemMobile) (SupremeItemMobile, error) {
 	for _, item := range *itemsMobile {
 		if checkKeywords(taskItem.Keywords, item.name) {
 			return item, nil
@@ -140,7 +140,7 @@ func findItemMobile(taskItem taskItem, itemsMobile *[]SupremeItemMobile) (Suprem
 }
 
 // PickSizeMobile picks a size out of the style list
-func PickSizeMobile(taskItem *taskItem, style *Style) (int, bool, error) {
+func PickSizeMobile(taskItem *TaskItem, style *Style) (int, bool, error) {
 	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
 		if len(style.Sizes) != 1 && style.Sizes[0].Name != "N/A" {

@@ -13,7 +13,7 @@ import (
 )
 
 func TestFindSingleItem(t *testing.T) {
-	taskItem := taskItem{
+	taskItem := TaskItem{
 		Keywords: []string{"hanes", "boxer"},
 		Category: "accessories",
 		Size:     "Medium",
@@ -48,7 +48,7 @@ func TestFindSingleItemFromPageSource(t *testing.T) {
 	supremeItems := parseCategoryPage(doc, false)
 	assert.Equal(t, 17, len(*supremeItems))
 
-	taskItem := taskItem{
+	taskItem := TaskItem{
 		Keywords: []string{"Plate"},
 		Category: "accessories",
 		Size:     "",
@@ -143,10 +143,10 @@ func TestParseSizesMultipleSizesPickSizes(t *testing.T) {
 		in   taskItem
 		out  string
 	}{
-		{"small", taskItem{Size: "small"}, "59754"},
-		{"medium", taskItem{Size: "Medium"}, "59755"},
-		{"large", taskItem{Size: "LaRGe"}, "59756"},
-		{"xlarge", taskItem{Size: "xLarge"}, "59757"},
+		{"small", TaskItem{Size: "small"}, "59754"},
+		{"medium", TaskItem{Size: "Medium"}, "59755"},
+		{"large", TaskItem{Size: "LaRGe"}, "59756"},
+		{"xlarge", TaskItem{Size: "xLarge"}, "59757"},
 	}
 
 	for _, tt := range pickTests {
@@ -161,7 +161,7 @@ func TestParseSizesMultipleSizesPickSizes(t *testing.T) {
 }
 
 func TestPickSizeNoSize(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "",
@@ -178,7 +178,7 @@ func TestPickSizeNoSize(t *testing.T) {
 }
 
 func TestPickSizeMultipleSizes(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "Medium",
@@ -199,7 +199,7 @@ func TestPickSizeMultipleSizes(t *testing.T) {
 }
 
 func TestPickSizeSingleSizeReturned(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "Medium",
@@ -214,7 +214,7 @@ func TestPickSizeSingleSizeReturned(t *testing.T) {
 }
 
 func TestPickSizeMultipleSizesReturnedButNoneInTask(t *testing.T) {
-	item := taskItem{
+	item := TaskItem{
 		Keywords: []string{"temp"},
 		Category: "accessories",
 		Size:     "",

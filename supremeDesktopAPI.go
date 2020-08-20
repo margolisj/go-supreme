@@ -163,7 +163,7 @@ func parseSizes(doc *goquery.Document) SizeResponse {
 }
 
 // PickSize picks a size out of the size map
-func PickSize(taskItem *taskItem, sizes *SizeResponse) (string, error) {
+func PickSize(taskItem *TaskItem, sizes *SizeResponse) (string, error) {
 	// If the task item is an empty string, task was set up to target no-size item
 	if taskItem.Size == "" {
 		if sizes.singleSizeID == "" {
@@ -234,7 +234,7 @@ func AddToCart(session *grequests.Session, task *Task, addURL string, xcsrf stri
 }
 
 // FindItem finds a task item in the slice of supreme items
-func findItem(taskItem taskItem, supremeItems []SupremeItem) (SupremeItem, error) {
+func findItem(taskItem TaskItem, supremeItems []SupremeItem) (SupremeItem, error) {
 	for _, supItem := range supremeItems {
 		if checkKeywords(taskItem.Keywords, supItem.name) && checkColor(taskItem.Color, supItem.color) {
 			return supItem, nil

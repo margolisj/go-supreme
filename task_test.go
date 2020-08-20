@@ -57,7 +57,7 @@ func TestTaskUnmarshal(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, "Task1", task.TaskName)
-	assert.Equal(t, taskItem{
+	assert.Equal(t, TaskItem{
 		Keywords: []string{"shaolin"},
 		Category: "hats",
 		Size:     "",
@@ -122,7 +122,7 @@ func TestVerifyTaskValidAmex(t *testing.T) {
 
 func TestVeriifyTaskMissingItem(t *testing.T) {
 	task := testTask()
-	task.Item = taskItem{}
+	task.Item = TaskItem{}
 	valid, err := task.VerifyTask()
 	assert.Equal(t, errors.New("Task category not found"), err)
 	assert.False(t, valid)
@@ -130,7 +130,7 @@ func TestVeriifyTaskMissingItem(t *testing.T) {
 
 func TestVeriifyTaskIncorrectCategory(t *testing.T) {
 	task := testTask()
-	task.Item = taskItem{}
+	task.Item = TaskItem{}
 	valid, err := task.VerifyTask()
 	assert.Equal(t, errors.New("Task category not found"), err)
 	assert.False(t, valid)
@@ -309,7 +309,7 @@ func TestGetRates(t *testing.T) {
 // func TestTaskSupremeCheckoutMobile(t *testing.T) {
 // 	task := Task{
 // 		TaskName: "Task1",
-// 		Item: taskItem{
+// 		Item: TaskItem{
 // 			[]string{"Briefs"},
 // 			"accessories",
 // 			"medium",
@@ -319,7 +319,7 @@ func TestGetRates(t *testing.T) {
 // 	}
 // 	// task := Task{
 // 	// 	TaskName: "Task1",
-// 	// 	Item: taskItem{
+// 	// 	Item: TaskItem{
 // 	// 		[]string{"gold"},
 // 	// 		"accessories",
 // 	// 		"",

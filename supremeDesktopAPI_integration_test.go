@@ -9,7 +9,7 @@ import (
 func TestGetCollectionItems(t *testing.T) {
 	session := buildTestSession(t)
 
-	item := taskItem{
+	item := TaskItem{
 		[]string{"temp"},
 		"accessories",
 		"",

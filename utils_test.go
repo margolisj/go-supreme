@@ -98,7 +98,7 @@ func TestReadTimeFromString(t *testing.T) {
 // 	})
 
 // 	task := &Task{
-// 		Item: taskItem{
+// 		Item: TaskItem{
 // 			Keywords: []string{
 // 				"brieFs",
 // 				"BoXeR",
@@ -125,7 +125,7 @@ func TestReadTimeFromString(t *testing.T) {
 // 	})
 
 // 	task := testTask()
-// 	task.Item = taskItem{
+// 	task.Item = TaskItem{
 // 		Keywords: []string{
 // 			"brieFs",
 // 			"BoXeR",

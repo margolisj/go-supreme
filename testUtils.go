@@ -38,7 +38,7 @@ func testAccount() Account {
 
 // testTask is a tester task. It is missing API and refresh rate settings.
 func testTask() Task {
-	item := taskItem{
+	item := TaskItem{
 		[]string{"shaolin"},
 		"shirts",
 		"",

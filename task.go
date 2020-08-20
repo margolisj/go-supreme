@@ -46,7 +46,8 @@ type Account struct {
 	Card    Card    `json:"card"`
 }
 
-type taskItem struct {
+// TaskItem the item the task is trying to buy
+type TaskItem struct {
 	Keywords []string `json:"keywords"`
 	Category string   `json:"category"`
 	Size     string   `json:"size"`
@@ -56,7 +57,7 @@ type taskItem struct {
 // Task is a checkout account and an item(s) to checkout
 type Task struct {
 	TaskName     string       `json:"taskName"`
-	Item         taskItem     `json:"item"`
+	Item         TaskItem     `json:"item"`
 	Account      Account      `json:"account"`
 	API          string       `json:"api"`
 	WaitSettings WaitSettings `json:"waitSettings"`
