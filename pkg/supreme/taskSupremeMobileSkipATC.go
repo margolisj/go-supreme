@@ -1,82 +1,29 @@
-package main
+package supreme
 
 import (
-	"errors"
 	"fmt"
+	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"time"
 
 	"github.com/levigross/grequests"
+	"golang.org/x/net/publicsuffix"
 )
 
-// waitForItemMatchMobile is a helper function for checkout. It waits until we find an item in the collection.
-func waitForItemMatchMobile(session *grequests.Session, task *Task) (*SupremeItemMobile, error) {
-	itemsMobile, err := GetCollectionItemsMobile(session, task)
-	if err != nil {
-		return &SupremeItemMobile{}, errors.New("Error getting collection items")
-	}
-	// task.Log().Info().Msgf("%+v", itemsMobile)
-
-	if len(*itemsMobile) > 0 {
-		matchedItem, err := findItemMobile(task.Item, itemsMobile)
-		if err != nil {
-			return &SupremeItemMobile{}, errors.New("Items in collection but unable to find items")
-		}
-		return &matchedItem, nil
-	}
-
-	return &SupremeItemMobile{}, errors.New("No matches found in collection")
-}
-
-func waitForStyleMatchMobile(session *grequests.Session, task *Task, matchedItem *SupremeItemMobile) (*Style, error) {
-	styles, err := GetSizeInfoMobile(session, task, matchedItem)
-	if err != nil {
-		return &Style{}, errors.New("Error getting styles")
-	}
-	// task.Log().Info().Msgf("%+v", styles)
-
-	if len(*styles) > 0 {
-		for _, style := range *styles {
-			if checkColor(task.Item.Color, style.Name) {
-				return &style, nil
-			}
-		}
-	}
-
-	return &Style{}, errors.New("No matches found for style")
-}
-
-func waitForRestock(session *grequests.Session, task *Task, matchedItem *SupremeItemMobile) int {
-	for {
-		task.Log().Debug().
-			Msgf("Waiting for restock, sleeping %dms.", task.GetTaskRefreshRate())
-		time.Sleep(time.Duration(task.GetTaskRefreshRate()) * time.Millisecond)
-
-		matchedStyle, err := waitForStyleMatchMobile(session, task, matchedItem)
-		if err != nil {
-			task.Log().Error().Err(err).Msg("Error matching style")
-			continue
-		}
-
-		pickedSizeID, isInStock, err := PickSizeMobile(&task.Item, matchedStyle)
-		if err != nil {
-			task.Log().Error().Err(err).Msg("Error picking size")
-		}
-
-		if !isInStock {
-			task.Log().Debug().Msg("Item not in stock")
-			continue
-		}
-
-		return pickedSizeID
-	}
-}
-
-// SupremeCheckoutMobile Completes a checkout on supreme using the mobile API
-func (task *Task) SupremeCheckoutMobile() (bool, error) {
+// SupremeCheckoutMobileSkipATC Completes a checkout on supreme using the mobile API
+func (task *Task) SupremeCheckoutMobileSkipATC() (bool, error) {
 	var matchedItem *SupremeItemMobile // The item on the supreme site we will buy
 	var err error
-	session := grequests.NewSession(nil)
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		task.Log().Error().Err(err).Msg("Unable to create cookie jar")
+		return false, err
+	}
+
+	session := grequests.NewSession(&grequests.RequestOptions{
+		CookieJar: jar,
+	})
 	task.Log().Debug().
 		Str("item", fmt.Sprintf("%+v", task.Item)).
 		Str("waitTimes", fmt.Sprintf("%d %d %d", task.GetTaskRefreshRate(), task.GetTaskAtcWait(), task.GetTaskCheckoutWait())).
@@ -120,7 +67,7 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	if err != nil {
 		task.Log().Error().Err(err).Msg("Error picking size")
 	}
-	// WAIT FOR RESTOCK IF NOT INSTOCK
+	// WAIT FOR RESTOCK IF NOT IN STOCK
 	if !isInStock {
 		task.Log().Info().Msg("Item is not in stock, waiting for restock")
 		task.status = "Waiting for restock"
@@ -130,25 +77,33 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	// ADD TO CART
 	startTime := time.Now()
 	task.Log().Info().
-		Msgf("ATC Wait, sleeping: %dms", task.GetTaskAtcWait())
-	time.Sleep(time.Duration(task.GetTaskAtcWait()) * time.Millisecond)
+		Msgf("ATC Adding item to cart")
 	task.Log().Debug().Msgf("item ID: %d st: %d s: %d", matchedItem.id, matchedStyle.ID, pickedSizeID)
 	task.UpdateStatus("Adding item to cart")
-	var atcSuccess bool
-	err = retry(10, 10*time.Millisecond, func(attempt int) error {
-		task.Log().Debug().Msgf("ATC attempt: %d", attempt)
-		var err error
-		atcSuccess, err = AddToCartMobile(session, task, matchedItem.id, matchedStyle.ID, pickedSizeID)
-		return err
-	})
-	task.Log().Debug().Msgf("ATC Results: %t", atcSuccess)
-	if !atcSuccess {
-		return false, nil
-	}
 
-	// Purecart implementation instead of building cookie sub our selves
-	// supremeURL, _ := url.Parse("http://www.supremenewyork.com")
-	// task.Log().Debug().Msgf("%+v", session.HTTPClient.Jar.Cookies(supremeURL))
+	// cart
+	// 1+item--59765%2C21347 => 1+item--59765,21347
+	cartValue := "1+item--" + url.QueryEscape(fmt.Sprintf("%d,%d", pickedSizeID, matchedStyle.ID))
+	// pure_cart
+	// %7B%2259765%22%3A1%7D => {"59765":1}
+	pureCartValue := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
+
+	supURLHTTP, _ := url.Parse("http://www.supremenewyork.com")
+	jar.SetCookies(supURLHTTP, []*http.Cookie{
+		&http.Cookie{
+			Domain: "www.supremenewyork.com",
+			Name:   "cart",
+			Path:   "/",
+			Value:  cartValue,
+		},
+		&http.Cookie{
+			Domain: "www.supremenewyork.com",
+			Name:   "pure_cart",
+			Path:   "/",
+			Value:  pureCartValue,
+		},
+	})
+	task.Log().Debug().Msgf("%+v", jar.Cookies(supURLHTTP))
 
 	// CHECKOUT
 	task.Log().Info().
@@ -157,13 +112,12 @@ func (task *Task) SupremeCheckoutMobile() (bool, error) {
 	task.UpdateStatus("Checking out")
 	task.Log().Debug().
 		Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)
-	cookieSub := url.QueryEscape(fmt.Sprintf("{\"%d\":1}", pickedSizeID))
 	var checkoutSuccess bool
 	var queueResponse string
 	err = retry(10, 10*time.Millisecond, func(attempt int) error {
 		task.Log().Debug().Msgf("Checkout attempt: %d", attempt)
 		var err error
-		checkoutSuccess, queueResponse, err = CheckoutMobile(session, task, &cookieSub)
+		checkoutSuccess, queueResponse, err = CheckoutMobile(session, task, &pureCartValue)
 		return err
 	})
 	elapsed := time.Since(startTime)

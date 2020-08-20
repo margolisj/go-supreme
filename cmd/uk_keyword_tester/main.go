@@ -7,12 +7,14 @@ import (
 	"testing"
 
 	"github.com/levigross/grequests"
-	"github.com/margolisj/go-supreme/task"
+	// "github.com/margolisj/go-supreme/supreme"
+	"github.com/margolisj/go-supreme/pkg/supreme"
+	// "go-supreme/pkg/supreme"
 )
 
 func TestUKKeywords(t *testing.T) {
-	items := []task.TaskItem{
-		task.TaskItem{
+	items := []supreme.TaskItem{
+		supreme.TaskItem{
 			Keywords: []string{
 				"sanders",
 			},
@@ -40,7 +42,7 @@ func TestUKKeywords(t *testing.T) {
 		// },
 	}
 
-	task := testTask()
+	task := testUtils.testTask()
 	proxyString := "81.130.135.142:48057"
 	proxyURL, err := url.Parse("http://" + proxyString) // Proxy URL
 	if err != nil {
@@ -48,7 +50,7 @@ func TestUKKeywords(t *testing.T) {
 	}
 
 	localRo := &grequests.RequestOptions{
-		UserAgent: supremeAPIMobile.mobileUserAgent,
+		UserAgent: supreme.mobileUserAgent,
 		Proxies: map[string]*url.URL{
 			"http":  proxyURL,
 			"https": proxyURL,
@@ -81,6 +83,6 @@ func TestUKKeywords(t *testing.T) {
 		} else {
 			t.Logf("Item %d was found size: %d", k, ID)
 		}
-
 	}
+
 }

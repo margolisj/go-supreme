@@ -1,4 +1,4 @@
-package main
+package supreme
 
 import (
 	"bufio"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 var currentKeyVersion int = 1

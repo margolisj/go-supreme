@@ -1,4 +1,4 @@
-package main
+package supreme
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/levigross/grequests"
+	"github.com/rs/zerolog/log"
 )
 
 const sharedUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36"
