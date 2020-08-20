@@ -7,37 +7,37 @@ import (
 	"testing"
 
 	"github.com/levigross/grequests"
+	"github.com/margolisj/go-supreme/task"
 )
 
 func TestUKKeywords(t *testing.T) {
-	items := []taskItem{
-		taskItem{
+	items := []task.TaskItem{
+		task.TaskItem{
 			Keywords: []string{
-				"trust",
-				"killer",
+				"sanders",
 			},
 			Size:     "medium",
 			Color:    "white",
 			Category: "t-shirts",
 		},
-		taskItem{
-			Keywords: []string{
-				"trust",
-				"killer",
-			},
-			Size:     "medium",
-			Color:    "heather grey",
-			Category: "t-shirts",
-		},
-		taskItem{
-			Keywords: []string{
-				"L/S",
-				"killer",
-			},
-			Size:     "medium",
-			Color:    "white",
-			Category: "t-shirts",
-		},
+		// task.TaskItem{
+		// 	Keywords: []string{
+		// 		"trust",
+		// 		"killer",
+		// 	},
+		// 	Size:     "medium",
+		// 	Color:    "heather grey",
+		// 	Category: "t-shirts",
+		// },
+		// task.TaskItem{
+		// 	Keywords: []string{
+		// 		"L/S",
+		// 		"killer",
+		// 	},
+		// 	Size:     "medium",
+		// 	Color:    "white",
+		// 	Category: "t-shirts",
+		// },
 	}
 
 	task := testTask()
@@ -48,7 +48,7 @@ func TestUKKeywords(t *testing.T) {
 	}
 
 	localRo := &grequests.RequestOptions{
-		UserAgent: mobileUserAgent,
+		UserAgent: supremeAPIMobile.mobileUserAgent,
 		Proxies: map[string]*url.URL{
 			"http":  proxyURL,
 			"https": proxyURL,
