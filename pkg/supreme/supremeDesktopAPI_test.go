@@ -35,7 +35,7 @@ func TestFindSingleItem(t *testing.T) {
 }
 
 func TestFindSingleItemFromPageSource(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/3-3-2020-desktop-accessories.html")
+	f, err := os.Open("../../test/data/supremeSite/3-3-2020-desktop-accessories.html")
 	if err != nil {
 		t.Error(err)
 	}
@@ -69,7 +69,7 @@ func TestFindSingleItemFromPageSource(t *testing.T) {
 
 // TODO: Replace this with an updated empty desktop category
 func TestParseEmptyCategoryPage(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/9-29-18-jackets-empty.html")
+	f, err := os.Open("../../test/data/supremeSite/9-29-18-jackets-empty.html")
 	if err != nil {
 		t.Error(err)
 	}
@@ -84,7 +84,7 @@ func TestParseEmptyCategoryPage(t *testing.T) {
 }
 
 func TestParseSizesSingleSize(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/9-24-18-lucettaLight.html")
+	f, err := os.Open("../../test/data/supremeSite/9-24-18-lucettaLight.html")
 	if err != nil {
 		t.Error(err)
 	}
@@ -99,7 +99,7 @@ func TestParseSizesSingleSize(t *testing.T) {
 }
 
 func TestParseSizesMultipleSizes(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/9-24-18-blackTagless.html")
+	f, err := os.Open("../../test/data/supremeSite/9-24-18-blackTagless.html")
 	if err != nil {
 		t.Error(err)
 	}
@@ -119,7 +119,7 @@ func TestParseSizesMultipleSizes(t *testing.T) {
 }
 
 func TestParseSizesMultipleSizesPickSizes(t *testing.T) {
-	f, err := os.Open("./testData/supremeSite/10-3-18-whiteTagless.html")
+	f, err := os.Open("../../test/data/supremeSite/10-3-18-whiteTagless.html")
 	if err != nil {
 		t.Error(err)
 	}
@@ -140,7 +140,7 @@ func TestParseSizesMultipleSizesPickSizes(t *testing.T) {
 
 	pickTests := []struct {
 		name string
-		in   taskItem
+		in   TaskItem
 		out  string
 	}{
 		{"small", TaskItem{Size: "small"}, "59754"},

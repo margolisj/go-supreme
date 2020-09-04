@@ -34,9 +34,9 @@ type stop struct {
 	error
 }
 
-// setupLogger sets up a zerolog logger to our specifications which is dump to Stderr and a log file in
+// SetupLogger sets up a zerolog logger to our specifications which is dump to Stderr and a log file in
 // a folder called "./logs"
-func setupLogger() *zerolog.Logger {
+func SetupLogger() *zerolog.Logger {
 	// UNIX Time is faster and smaller than most timestamps
 	// If you set zerolog.TimeFieldFormat to an empty string,
 	// logs will write with UNIX time

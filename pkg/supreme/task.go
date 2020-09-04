@@ -5,11 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
+
+var testLogger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr})
 
 // Person is a struct modeling personal information
 type Person struct {
@@ -61,7 +65,7 @@ type Task struct {
 	API          string       `json:"api"`
 	WaitSettings WaitSettings `json:"waitSettings"`
 	status       string
-	id           string
+	ID           string
 	log          *zerolog.Logger
 }
 
@@ -97,12 +101,11 @@ func (task *Task) Log() *zerolog.Logger {
 	if task.log == nil {
 		// Logger for testing
 		// if log == nil {
-		// 	testLogger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr})
 		// 	task.log = &testLogger
 		// } else {
-		// 	// If task wasn't provided a logger during runtime
-		// 	tempLogger := log.With().Str("taskID", task.id).Logger()
-		// 	task.log = &tempLogger
+		// If task wasn't provided a logger during runtime
+		logger := log.With().Str("taskID", task.ID).Logger()
+		task.log = &logger
 		// }
 	}
 	return task.log
@@ -115,25 +118,25 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 
 // GetTaskRefreshRate returns application settings if not defined on the task
 func (task *Task) GetTaskRefreshRate() int {
-	if task.WaitSettings.RefreshWait == 0 {
-		return appSettings.RefreshWait
-	}
+	// if task.WaitSettings.RefreshWait == 0 {
+	// 	return AppSettings.RefreshWait
+	// }
 	return task.WaitSettings.RefreshWait
 }
 
 // GetTaskAtcWait returns application settings if not defined on the task
 func (task *Task) GetTaskAtcWait() int {
-	if task.WaitSettings.AtcWait == 0 {
-		return appSettings.AtcWait
-	}
+	// if task.WaitSettings.AtcWait == 0 {
+	// 	return appSettings.AtcWait
+	// }
 	return task.WaitSettings.AtcWait
 }
 
 // GetTaskCheckoutWait returns application settings if not defined on the task
 func (task *Task) GetTaskCheckoutWait() int {
-	if task.WaitSettings.CheckoutWait == 0 {
-		return appSettings.CheckoutWait
-	}
+	// if task.WaitSettings.CheckoutWait == 0 {
+	// 	return appSettings.CheckoutWait
+	// }
 	return task.WaitSettings.CheckoutWait
 }
 

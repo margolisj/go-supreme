@@ -175,7 +175,7 @@ func TestMultipleSizesPickSizesMobile(t *testing.T) {
 
 	pickTests := []struct {
 		name      string
-		in        taskItem
+		in        TaskItem
 		styleID   int
 		isInStock bool
 	}{
