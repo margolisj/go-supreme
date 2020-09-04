@@ -55,25 +55,27 @@ type TaskItem struct {
 	Category string   `json:"category"`
 	Size     string   `json:"size"`
 	Color    string   `json:"color"`
+	// TODO: Add quantity
+	// Quantity int
 }
 
 // Task is a checkout account and an item(s) to checkout
 type Task struct {
-	TaskName     string       `json:"taskName"`
-	Item         TaskItem     `json:"item"`
-	Account      Account      `json:"account"`
-	API          string       `json:"api"`
-	WaitSettings WaitSettings `json:"waitSettings"`
-	status       string
-	ID           string
-	log          *zerolog.Logger
+	TaskName      string        `json:"taskName"`
+	Item          TaskItem      `json:"item"`
+	Account       Account       `json:"account"`
+	API           string        `json:"api"`
+	DelaySettings DelaySettings `json:"delaySettings"`
+	status        string
+	ID            string
+	log           *zerolog.Logger
 }
 
-// WaitSettings are the setting used in the bot for waiting
-type WaitSettings struct {
-	RefreshWait  int `json:"refreshWait"`
-	AtcWait      int `json:"atcWait"`
-	CheckoutWait int `json:"checkoutWait"`
+// DelaySettings are the setting used in the bot for waiting
+type DelaySettings struct {
+	MonitorDelay  int `json:"monitorDelay"`
+	AtcDelay      int `json:"atcDelay"`
+	CheckoutDelay int `json:"checkoutDelay"`
 }
 
 // ImportTasksFromJSON imports a list of tasks from a json file
@@ -118,26 +120,26 @@ func (task *Task) SetLog(newLogger *zerolog.Logger) {
 
 // GetTaskRefreshRate returns application settings if not defined on the task
 func (task *Task) GetTaskRefreshRate() int {
-	// if task.WaitSettings.RefreshWait == 0 {
-	// 	return AppSettings.RefreshWait
-	// }
-	return task.WaitSettings.RefreshWait
+	if task.DelaySettings.MonitorDelay == 0 {
+		return DefaultApplicationSettings.DefaultDelaySettings.MonitorDelay
+	}
+	return task.DelaySettings.MonitorDelay
 }
 
-// GetTaskAtcWait returns application settings if not defined on the task
-func (task *Task) GetTaskAtcWait() int {
-	// if task.WaitSettings.AtcWait == 0 {
-	// 	return appSettings.AtcWait
-	// }
-	return task.WaitSettings.AtcWait
+// GetTaskAtcDelay returns application settings if not defined on the task
+func (task *Task) GetTaskAtcDelay() int {
+	if task.DelaySettings.AtcDelay == 0 {
+		return DefaultApplicationSettings.DefaultDelaySettings.AtcDelay
+	}
+	return task.DelaySettings.AtcDelay
 }
 
-// GetTaskCheckoutWait returns application settings if not defined on the task
-func (task *Task) GetTaskCheckoutWait() int {
-	// if task.WaitSettings.CheckoutWait == 0 {
-	// 	return appSettings.CheckoutWait
-	// }
-	return task.WaitSettings.CheckoutWait
+// GetTaskCheckoutDelay returns application settings if not defined on the task
+func (task *Task) GetTaskCheckoutDelay() int {
+	if task.DelaySettings.CheckoutDelay == 0 {
+		return DefaultApplicationSettings.DefaultDelaySettings.CheckoutDelay
+	}
+	return task.DelaySettings.CheckoutDelay
 }
 
 // VerifyTask verifies the information provided in the task to make sure it is

@@ -9,7 +9,7 @@ Buys some supreme stuff.
 Individual Test:
 
 ~~~sh
-
+go test
 ~~~
 
 Individual File:
@@ -18,8 +18,13 @@ Individual File:
 
 ~~~
 
-Integration Tests:
-
+Integration Tests and Unit Tests:
+~~~sh
+# Integration Tests
+go test --tags=integration
+# Unit Tests
+go test --tags=unit
+~~~
 
 ### Runnings Application
 
@@ -72,10 +77,10 @@ The task file is json.
       }
     }
     "api": "mobile",
-    "waitSettings": {
-      "refreshWait": 150,
-      "atcWait": 586,
-      "checkoutWait": 776
+    "delaySettings": {
+      "monitorDelay": 150,
+      "atcDelay": 586,
+      "checkoutDelay": 776
     }
   }
 ]
@@ -86,9 +91,9 @@ The task file is json.
 ~~~json
 {
   "startTime": "2018-10-10T14:59:30.000Z",
-  "refreshWait": 300,
-  "atcWait": 800,
-  "checkoutWait": 800,
+  "monitorDelay": 300,
+  "atcDelay": 800,
+  "checkoutDelay": 800,
 }
 ~~~
 

@@ -18,13 +18,13 @@ API: "mobile", "skipMobile" or "desktop"
 Settings file is also json:
 ```{
   "startTime": "2018-10-18T14:59:30.000Z",
-  "refreshWait": 300,
-  "atcWait": 800,
-  "checkoutWait": 800
+  "monitorDelay": 300,
+  "atcDelay": 800,
+  "checkoutDelay": 800
 }```
 startTime will start all tasks after the specific size.
 All times are in milliseconds.
-refreshWait is how long to wait before refreshing a category while monitoring or waiting for a restock.
-atcWait is waiting before adding the item to the cart.
-checkoutWait time to wait before completing the checkout.
+monitorDelay is how long to wait before refreshing a category while monitoring or waiting for a restock.
+atcDelay is waiting before adding the item to the cart.
+checkoutDelay time to wait before completing the checkout.
 You can see the per task settings in the profiled example task file.

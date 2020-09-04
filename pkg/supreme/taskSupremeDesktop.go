@@ -34,7 +34,7 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 	session := grequests.NewSession(nil)
 	task.Log().Debug().
 		Str("item", fmt.Sprintf("%+v", task.Item)).
-		Str("waitTimes", fmt.Sprintf("%d %d %d", task.GetTaskRefreshRate(), task.GetTaskAtcWait(), task.GetTaskCheckoutWait())).
+		Str("waitTimes", fmt.Sprintf("%d %d %d", task.GetTaskRefreshRate(), task.GetTaskAtcDelay(), task.GetTaskCheckoutDelay())).
 		Msg("Checking out item")
 
 	// Try to find the item provided in keywords etc
@@ -73,8 +73,8 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 
 	// ADD TO CART
 	task.Log().Info().
-		Msgf("ATC Wait, sleeping: %dms", task.GetTaskAtcWait())
-	time.Sleep(time.Duration(task.GetTaskAtcWait()) * time.Millisecond)
+		Msgf("ATC Wait, sleeping: %dms", task.GetTaskAtcDelay())
+	time.Sleep(time.Duration(task.GetTaskAtcDelay()) * time.Millisecond)
 	task.UpdateStatus("Adding item to cart")
 	pickedSizeID, err := PickSize(&task.Item, &sizeResponse)
 	if err != nil {
@@ -97,8 +97,8 @@ func (task *Task) SupremeCheckoutDesktop() (bool, error) {
 
 	// CHECKOUT
 	task.Log().Info().
-		Msgf("Checkout Wait, sleeping: %dms", task.GetTaskCheckoutWait())
-	time.Sleep(time.Duration(task.GetTaskCheckoutWait()) * time.Millisecond)
+		Msgf("Checkout Wait, sleeping: %dms", task.GetTaskCheckoutDelay())
+	time.Sleep(time.Duration(task.GetTaskCheckoutDelay()) * time.Millisecond)
 	task.UpdateStatus("Checking out")
 	task.Log().Debug().
 		Msgf("Checking out task: %s %s", task.Account.Person, task.Account.Address)

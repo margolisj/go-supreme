@@ -46,10 +46,10 @@ func TestTaskUnmarshal(t *testing.T) {
 			}
 		},
 		"api": "desktop",
-		"waitSettings": {
-			"RefreshWait": 1000,
-			"AtcWait": 900,
-			"CheckoutWait": 800
+		"delaySettings": {
+			"MonitorDelay": 1000,
+			"AtcDelay": 900,
+			"CheckoutDelay": 800
 		}
 	}`)
 
@@ -86,9 +86,9 @@ func TestTaskUnmarshal(t *testing.T) {
 		Cvv:      "847",
 	}, task.Account.Card)
 	assert.Equal(t, "desktop", task.API)
-	assert.Equal(t, 1000, task.WaitSettings.RefreshWait)
-	assert.Equal(t, 900, task.WaitSettings.AtcWait)
-	assert.Equal(t, 800, task.WaitSettings.CheckoutWait)
+	assert.Equal(t, 1000, task.DelaySettings.MonitorDelay)
+	assert.Equal(t, 900, task.DelaySettings.AtcDelay)
+	assert.Equal(t, 800, task.DelaySettings.CheckoutDelay)
 }
 
 func TestReadImportTasksFromJSONFile(t *testing.T) {
@@ -282,56 +282,27 @@ func TestVertifyTasksBad(t *testing.T) {
 	}, errs)
 }
 
-// TODO : Fix this test
-// func TestGetRates(t *testing.T) {
-// 	task := testTask()
-// 	// These should be equal because the test task is missing waitSettings values
-// 	assert.Equal(t, ApplicationSettings.RefreshWait, task.GetTaskRefreshRate())
-// 	assert.Equal(t, ApplicationSettings.AtcWait, task.GetTaskAtcWait())
-// 	assert.Equal(t, ApplicationSettings.CheckoutWait, task.GetTaskCheckoutWait())
+func TestGetRates(t *testing.T) {
+	task := testTask()
+	// These should be equal because the test task is missing delaySettings values
+	assert.Equal(t, DefaultApplicationSettings.DefaultDelaySettings.MonitorDelay, task.GetTaskRefreshRate())
+	assert.Equal(t, DefaultApplicationSettings.DefaultDelaySettings.AtcDelay, task.GetTaskAtcDelay())
+	assert.Equal(t, DefaultApplicationSettings.DefaultDelaySettings.CheckoutDelay, task.GetTaskCheckoutDelay())
 
-// 	task.WaitSettings = WaitSettings{
-// 		RefreshWait: 1000,
-// 		AtcWait:     900,
-// 	}
-// 	assert.Equal(t, 1000, task.GetTaskRefreshRate())
-// 	assert.Equal(t, 900, task.GetTaskAtcWait())
+	task.DelaySettings = DelaySettings{
+		MonitorDelay: 1000,
+		AtcDelay:     900,
+	}
+	assert.Equal(t, 1000, task.GetTaskRefreshRate())
+	assert.Equal(t, 900, task.GetTaskAtcDelay())
 
-// 	task.WaitSettings = WaitSettings{
-// 		RefreshWait:  343,
-// 		AtcWait:      0,
-// 		CheckoutWait: 800,
-// 	}
-// 	assert.Equal(t, 343, task.GetTaskRefreshRate())
-// 	// This should be appSettings.AtcWait because the value of AtcWait is 0
-// 	assert.Equal(t, ApplicationSettings.AtcWait, task.GetTaskAtcWait())
-// 	assert.Equal(t, 800, task.GetTaskCheckoutWait())
-// }
-
-// func TestTaskSupremeCheckoutMobile(t *testing.T) {
-// 	task := Task{
-// 		TaskName: "Task1",
-// 		Item: TaskItem{
-// 			[]string{"Briefs"},
-// 			"accessories",
-// 			"medium",
-// 			"white",
-// 		},
-// 		Account: testAccount(),
-// 	}
-// 	// task := Task{
-// 	// 	TaskName: "Task1",
-// 	// 	Item: TaskItem{
-// 	// 		[]string{"gold"},
-// 	// 		"accessories",
-// 	// 		"",
-// 	// 		"gold",
-// 	// 	},
-// 	// 	Account: testAccount(),
-// 	// }
-// 	success, err := task.SupremeCheckoutMobile()
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
-// 	t.Log(success)
-// }
+	task.DelaySettings = DelaySettings{
+		MonitorDelay:  343,
+		AtcDelay:      0,
+		CheckoutDelay: 800,
+	}
+	assert.Equal(t, 343, task.GetTaskRefreshRate())
+	// This should be appSettings.AtcDelay because the value of AtcDelay is 0
+	assert.Equal(t, DefaultApplicationSettings.DefaultDelaySettings.AtcDelay, task.GetTaskAtcDelay())
+	assert.Equal(t, 800, task.GetTaskCheckoutDelay())
+}
