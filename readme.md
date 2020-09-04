@@ -1,17 +1,41 @@
 # Go_Supreme
+
 Buys some supreme stuff.
 
 ## Getting Started
+
+### Running Tests
+
+Individual Test:
+
+~~~sh
+
+~~~
+
+Individual File:
+
+~~~sh
+
+~~~
+
+Integration Tests:
+
+
+### Runnings Application
+
 1. Make sure you have a task file and settings file somewhere to use on the command line.
 2. Build and run.
-~~~~
-go build
+
+~~~~sh
+#go build
 ./supreme ./pathto/tasks.json ./optionalFilePath/Settings.json
 ~~~~
 
 ### Task Setup
+
 The task file is json.
-```
+
+~~~json
 [
   {
     "taskName": "shopsafe 0 0RU3",
@@ -55,31 +79,41 @@ The task file is json.
     }
   }
 ]
-```
+~~~
 
 ### Settings Setup
-```
+
+~~~json
 {
   "startTime": "2018-10-10T14:59:30.000Z",
   "refreshWait": 300,
   "atcWait": 800,
   "checkoutWait": 800,
 }
-```
+~~~
 
 ## Building Multiple OS Targets
+
 To build different targets you will need to install goreleaser (it is on homebrew). Then Run:
-~~~~
+
+~~~~sh
 goreleaser --snapshot
 ~~~~
 
 ### Build Windows Only
-```
-GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/src" -asmflags="-trimpath=$GOPATH/src" -o supreme-windows.exe
-```
 
-## TODO:
+~~~sh
+GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/src" -asmflags="-trimpath=$GOPATH/src" -o supreme-windows.exe
+~~~
+
+## TODO
+
+### Updating / Cleaning
+
+* Fix application settings in task.go
+
 ### Current
+
 * Fix checkout for mobile and desktop
 * Replace checkout waiting with total time from ATC to make sure we are above X ms
 * Look to change grequest code with better http transport?
@@ -91,6 +125,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
   * Move API code to library
 
 ### Pipeline
+
 * Test go obfuscate on something simple / check on stripping linking
 * Look to improve algorithm resiliency
 * Skip ATC
@@ -129,7 +164,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * Electron
       * https://nucleus.sh/docs/sell - For the entire js application
     * Add ability to kill one of these go routines via select statement from either cancel channel
-        * https://chilts.org/2017/06/12/cancelling-multiple-goroutines
+      * <https://chilts.org/2017/06/12/cancelling-multiple-goroutines>
     * Add gcapture code in case they revert
     * https://github.com/murlokswarm/app
     * https://github.com/asticode/go-astilectron
@@ -139,6 +174,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
   * https://github.com/spf13/cobra
 
 ### Completed
+
 * Finish API - 9/19/18
   * Finish queuing, see js version - 9/19/18
 * Add worker pool - 9/20/18
@@ -209,22 +245,26 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
 * Add task specific delays - 10/15/18
 * Figure out if new works for mobile 10/17/18
 * Bugs from 10/18/18
-    * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows - 10/21/18
-    * Add task name to log output - 10/22/18
-    * Add API as a log variable and update log stats file - 10/22/18
+  * Queue bug if queues more than once, see logs 13, 18 mac 1, 14 windows - 10/21/18
+  * Add task name to log output - 10/22/18
+  * Add API as a log variable and update log stats file - 10/22/18
 * Unify redundant return queue logic and checkout logic - 10/21/18
 * Adds skipATCMobile into full version - 10/22/18
 * Replaces Panic calls with Fatal calls to stop leaking GOPATH - 10/22/18
 * Updates tests, removes dead code, removes previous security and fixed desktop item identification - 3/2/20
 
 ## Objectives
+
 ### 9/20/18
+
 * Test - Successful, 3 Liquid Tees but ended in crash
 
 ### 9/27/18
+
 * Failed - Massive amount of user error, set up almost all of the item incorrectly
 
 ### 10/4/18
+
 * Failed - Unsure but I believe the mobile API dropped first, some got to checkout but were denied
 * Test queuing properly - worked
 * Run more versions:
@@ -233,6 +273,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
   * Test on Google cloud - Did not set up
 
 ### 10/11/18
+
 * Add beta testers
   * Added 3 more as of now
 * Test mobile API
@@ -250,6 +291,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * Store credit works
 
 ### 10/18/2018
+
 * Results:
   * Working tasks and times
     * 13, mac - desktop, 150 786 902 (queued)
@@ -263,6 +305,7 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * Looks like everything picked up and worked well today
 
 ## 10/25/2018
+
 * Results
   * 6 Tee Checkouts
     * 28, windows, psx6 - philly, here
@@ -273,19 +316,20 @@ GOOS=windows GOARCH=386 go build -ldflags="-s -w" -gcflags="-trimpath=$GOPATH/sr
     * 30, windows, 57y0 - philly, missing
   * Still a good number of declines
 
-
 ## Log Greps
-```
+
+~~~sh
 grep "\"success\": false," logs/10-11-AllLogs/*wolf*/*
 grep "\"success\": true," logs/10-11-AllLogs/*wolf*/*
 grep "declined" logs/10-11-AllLogs/*wolf*/* | wc -l
 grep "declined" logs/10-11-AllLogs/*wolf*/* | wc -l
 grep "Success?" logs/10-11-AllLogs/10-11-mac/* | wc -l
-```
+~~~
 
 ## Libraries and Code Examples
 
 ### Libraries
+
 * https://godoc.org/github.com/levigross/grequests
 * https://godoc.org/github.com/PuerkitoBio/goquery
 * https://godoc.org/github.com/stretchr/testify
@@ -294,6 +338,7 @@ grep "Success?" logs/10-11-AllLogs/10-11-mac/* | wc -l
 * https://godoc.org/4d63.com/tz
 
 ### Code Examples
+
 * http://polyglot.ninja/golang-making-http-requests/
 * https://blog.alexellis.io/golang-writing-unit-tests/
 * https://help.github.com/articles/removing-sensitive-data-from-a-repository/
